@@ -5,7 +5,7 @@
 Plate Pusher is a single-file web app for engineers and students. Draw a slab, wall or plate, support it, load it and see how it carries load. Results update as you edit. Its look and layout follow [Frame Pusher](https://claude.ai/artifact/7igCHuhTxqEmDHG8SntAUn), the companion 2D frame tool.
 
 - **Live app:** https://claude.ai/artifact/9Uc8jHt3B8UhyCdnPh3oFy
-- **Version:** 1.1 (2 November 2026)
+- **Version:** 1.2 (2 November 2026)
 - **Units:** kN and m. Inputs: E in GPa, thickness and element size in mm. Outputs: moments in kNm/m, shears and membrane forces in kN/m, stresses in MPa, deflections in mm.
 
 ---
@@ -35,7 +35,7 @@ Plate Pusher is a single-file web app for engineers and students. Draw a slab, w
 | Area | What you can do |
 |---|---|
 | **Drawing** | Draw plates and openings as rectangles, polygons or circles; several plates join into one. Add mesh refinement zones. Snap to a grid, vertices and edges. Select, move and reshape items with handles. Undo and redo. |
-| **Supports** | Edge supports: simple (soft or hard), clamped, line springs, in-plane pins and rollers, fully fixed. Point supports: columns, fixed columns and springs. Elastic (Winkler) ground under a plate or a patch. |
+| **Supports** | Line supports along edges or inside the plate (walls, beam lines, including sloping ones): simple (soft or hard), clamped, line springs, in-plane pins and rollers, fully fixed. Point supports: columns, fixed columns and springs. Elastic (Winkler) ground under a plate or a patch. |
 | **Loads** | Out of plane: pressure over a whole plate or a patch, line loads and point loads. In plane: point forces and edge tractions. |
 | **Annotation** | Text notes, arrows, dimensions and boxes. |
 | **Results** | Contours of deflection, moments, shears, principal moments, Wood–Armer design moments, membrane forces and stresses (including von Mises). Options: averaged or unaveraged values, contour lines, peak labels, principal vectors, deformed shape, reactions, and a rotatable 3D view of the deflected plate. |
@@ -67,7 +67,7 @@ Pan by dragging empty space or right-dragging; zoom with the scroll wheel. `F` f
 | `R` | Plate | Drag a rectangle, click polygon corners, or drag a circle from its centre. |
 | `O` | Opening | Same as Plate; cuts a hole through the plate. |
 | `Z` | Mesh zone | Drag a rectangle where the mesh should be finer. |
-| `L` | Edge support | Drag along an edge, click an edge, or Shift-click a plate for its whole outline. |
+| `L` | Line support | Drag along an edge or across the plate (an internal wall or beam line), click an edge, or Shift-click a plate for its whole outline. Sloping lines pull the mesh onto them. |
 | `C` | Point support | Click to place a column, spring or in-plane support. |
 | `G` | Elastic ground | Click a plate or drag a patch (Winkler modulus k in kN/m³). |
 | `Q` | Pressure | Click a plate for the whole plate, or drag a patch (kPa). |
@@ -125,6 +125,8 @@ Pan by dragging empty space or right-dragging; zoom with the scroll wheel. `F` f
 - **Averaged:** nodal averaging smooths the results. Untick it to see the jumps between elements, which are a direct measure of discretisation error.
 - **Display box:** sets the scales for deformation, cut diagrams and vectors, the number of contour bands (or smooth shading), opacity and the colour palette.
 - **Colour scale:** diverging when a result changes sign, with zero at the centre and each side running to its own extreme. Otherwise sequential.
+- **Animate** (bottom bar, as in Frame Pusher): loads and results grow from zero to full value and back. The pop-up sets the speed and which displays animate: δ deformation (in-plane shape and 3D view), C contours, V principal vectors, S section-cut diagrams, R load, reaction and peak values. A linear analysis: every result is λ × its full value.
+- **Pressure and ground tags** sit outside the plate with a leader to their region; click a tag to select the load.
 - **About this result:** a collapsible box under the colour legend explains the selected result with a diagram: what it represents, its sign and units, and how to use it in design.
 - **Info panel:** shows maximum deflection, span-to-deflection ratio, total load against total reaction (an equilibrium check), mesh size and solve time.
 
@@ -196,6 +198,8 @@ Open them from the **Examples** button, the gallery button in the tool bar, or t
 | | L-shaped slab with an opening | Re-entrant corner effects and moment trajectories. |
 | | Circular tank cover | Boundary-fitted mesh; compare with Roark. |
 | | Raft on elastic ground | Six column loads on Winkler springs. |
+| | Slab continuous over an internal wall | Hogging over a wall drawn inside the plate. |
+| | Slab with a diagonal wall | A sloping internal support; moment trajectories. |
 | | Slab with a partition wall | A line load ridge in the moment field. |
 | | Skew slab, 30° | Load into the obtuse corners and rotating principal moments. |
 | In-plane | Deep transfer beam | Non-linear stress across the depth; compression arch and tension tie. |
@@ -209,7 +213,7 @@ Open them from the **Examples** button, the gallery button in the tool bar, or t
 
 ## Verification
 
-**Verification** in the top bar runs the full suite in the browser. Each check builds a model, solves it with the same code the app uses, and compares a result with its textbook value. At release, all 69 checks pass.
+**Verification** in the top bar runs the full suite in the browser. Each check builds a model, solves it with the same code the app uses, and compares a result with its textbook value. At v1.2, all 78 checks pass.
 
 | Group | Checks | Reference |
 |---|---|---|
@@ -220,6 +224,7 @@ Open them from the **Examples** button, the gallery button in the tool bar, or t
 | Circular plates | Simply supported and clamped, UDL: centre deflection and moment. | Roark |
 | Elastic ground | Large plate under a point load: w = P/8√(kD); ground reaction = P. | Hertz |
 | In-plane | Deep cantilever: tip deflection (Timoshenko beam), fibre stress, cut shear, moment and axial force. Plate with a hole: stress concentration (Howland/Heywood) and Kirsch σy. Deep beam equilibrium. | Timoshenko & Goodier, beam theory |
+| Line supports inside the plate | Two-span strip on a central wall: wall reaction 1.25qL, moment near the wall, span moment; diagonal wall: mesh pulled onto the line, zero deflection along it, equilibrium. | Continuous beam |
 | Solver | Mechanism detection; stability on three columns; RCM shrinks the skyline. | — |
 | Examples | Every example: reactions balance the applied loads. | Equilibrium |
 
