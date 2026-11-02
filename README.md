@@ -5,7 +5,7 @@
 Plate Pusher is a single-file web app for engineers and students. Draw a slab, wall or plate, support it, load it and see how it carries load. Results update as you edit. Its look and layout follow [Frame Pusher](https://claude.ai/artifact/7igCHuhTxqEmDHG8SntAUn), the companion 2D frame tool.
 
 - **Live app:** https://claude.ai/artifact/9Uc8jHt3B8UhyCdnPh3oFy
-- **Version:** 1.0 (2 November 2026)
+- **Version:** 1.1 (2 November 2026)
 - **Units:** kN and m. Inputs: E in GPa, thickness and element size in mm. Outputs: moments in kNm/m, shears and membrane forces in kN/m, stresses in MPa, deflections in mm.
 
 ---
@@ -17,15 +17,16 @@ Plate Pusher is a single-file web app for engineers and students. Draw a slab, w
 3. [Tools and shortcuts](#tools-and-shortcuts)
 4. [Results](#results)
 5. [Section cuts](#section-cuts)
-6. [Stiffness-matrix inspector](#stiffness-matrix-inspector)
-7. [Examples](#examples)
-8. [Verification](#verification)
-9. [Method](#method)
-10. [Sign conventions](#sign-conventions)
-11. [Limitations](#limitations)
-12. [Saving and opening models](#saving-and-opening-models)
-13. [Source layout and build](#source-layout-and-build)
-14. [Roadmap](#roadmap)
+6. [Element interrogation](#element-interrogation)
+7. [Stiffness-matrix inspector](#stiffness-matrix-inspector)
+8. [Examples](#examples)
+9. [Verification](#verification)
+10. [Method](#method)
+11. [Sign conventions](#sign-conventions)
+12. [Limitations](#limitations)
+13. [Saving and opening models](#saving-and-opening-models)
+14. [Source layout and build](#source-layout-and-build)
+15. [Roadmap](#roadmap)
 
 ---
 
@@ -75,6 +76,7 @@ Pan by dragging empty space or right-dragging; zoom with the scroll wheel. `F` f
 | `I` | Force | In-plane point force. Click to place; drag to set its direction. |
 | `T` | Edge traction | In-plane load qx, qy (kN/m) along a line or edge. |
 | `S` | Section cut | Drag a line across the plate. |
+| `E` | Element | Click inside an element to interrogate it; drag to move the point. |
 | `N` `A` `D` `B` | Text, arrow, dimension, box | Annotations. |
 | `X` | Delete | Click an item to delete it. |
 
@@ -123,6 +125,7 @@ Pan by dragging empty space or right-dragging; zoom with the scroll wheel. `F` f
 - **Averaged:** nodal averaging smooths the results. Untick it to see the jumps between elements, which are a direct measure of discretisation error.
 - **Display box:** sets the scales for deformation, cut diagrams and vectors, the number of contour bands (or smooth shading), opacity and the colour palette.
 - **Colour scale:** diverging when a result changes sign, with zero at the centre and each side running to its own extreme. Otherwise sequential.
+- **About this result:** a collapsible box under the colour legend explains the selected result with a diagram: what it represents, its sign and units, and how to use it in design.
 - **Info panel:** shows maximum deflection, span-to-deflection ratio, total load against total reaction (an equilibrium check), mesh size and solve time.
 
 ---
@@ -145,14 +148,30 @@ The normal **n** points to the left of A → B, and **t** runs from A to B. The 
 
 ---
 
+## Element interrogation
+
+Press `E` and click inside an element. The side panel (like Frame Pusher's member interrogation) shows, at the point you clicked:
+
+- the **parent element** in natural coordinates (r, s) with its Gauss points and, for bending, the MITC4 tying points, beside the **real element** shaded by the interpolated field; drag the point in either view or on the plate;
+- the four **shape functions** Nᵢ = ¼(1 + rᵢr)(1 + sᵢs) as small contour maps with their values, the derivatives ∂Nᵢ/∂x, ∂Nᵢ/∂y and the nodal DOFs;
+- the **interpolation** written out: w = ΣNᵢwᵢ (and βx, βy, or u, v) with numbers, and the partition-of-unity check;
+- the **Jacobian** J, det J and J⁻¹;
+- out of plane: **curvatures and moments** (κ = ∂β, M = Dκ) compared with the averaged contour values, and the **MITC4 assumed shear**: strains at the four tying points, their interpolation, Q = κGtγ, and the locking-prone direct value for comparison;
+- in plane: **strains** split into the bilinear part and the incompatible-mode part (with the condensed mode amplitudes α), and N = Dε.
+
 ## Stiffness-matrix inspector
 
-Press `M` or click **Stiffness matrix**. The panel can be dragged and maximised.
+Press `M` or click **Stiffness matrix**. The panel follows Frame Pusher's layout. It can be dragged, maximised (⤢), collapsed (▾) or **popped out into its own window** (⧉; dock it back with ⇲ or by closing the window). If the browser blocks pop-ups, maximise it instead.
+
+- **Navigate:** scroll to zoom about the cursor, drag to pan, click a cell to pin it. **Fit** resets the zoom; **Read** zooms until values (or equations) can be read. Only the visible part is drawn, so even large matrices zoom down to single entries.
+- **Cell text:** values, element equations, or both. With equations, each cell lists the elements that contribute and their bending and shear parts (out of plane), or the K<sub>cc</sub> part and the condensation term (in plane).
+- **Element stiffness equation behind the selected cell:** for each contributing element, the local entry, the symbolic integrand (for example D[N<sub>a,x</sub>N<sub>b,x</sub> + ½(1−ν)N<sub>a,y</sub>N<sub>b,y</sub>] + κGt(γ̄<sub>xz,a</sub>γ̄<sub>xz,b</sub> + γ̄<sub>yz,a</sub>γ̄<sub>yz,b</sub>)), a table of the four Gauss-point terms, their sum and a check against the element matrix.
+- **Build K element by element:** step (◀ ▶), drag or play (▶▶) the assembly; the latest element's entries are outlined in yellow and the element is highlighted on the plate.
 
 - **System:** out-of-plane K (3 DOFs per node: w, βx, βy) or in-plane K (2 DOFs per node: u, v).
 - **Show:** free DOFs (K<sub>ff</sub>, the equations that are solved) or all DOFs before supports are applied.
 - **Order:** solver order (reverse Cuthill–McKee) or node numbering. Compare the two to see how renumbering narrows the band.
-- **Colour:** log |K<sub>ij</sub>| with sign, linear, or sparsity pattern only. Zoom up to 64×; at large zoom each cell shows its value.
+- **Colour:** log |K<sub>ij</sub>| with sign, linear, or sparsity pattern only. A size setting (small to extra large) sets the fitted view.
 - **Hover an entry** to read K<sub>ij</sub> with its units and the row and column DOFs. The panel lists each element term that adds up to the entry, and highlights those elements and nodes on the plate. Click to pin an entry.
 - **Hover a node on the plate** to highlight its rows and columns in the matrix.
 - **Vectors:** u and F beside the matrix (plus R when showing all DOFs), so K u = F can be read directly.
@@ -287,7 +306,10 @@ Typical errors are 0.1–0.8% on deflections and moments. Section-cut resultants
 | `src/engine.js` | Mesher, elements (QM6 and MITC4), assembly, RCM ordering, skyline solver, supports and loads, recovery, point location, section sampling. |
 | `src/tests.js` | Verification suite (`runVerification()`). |
 | `src/app.js` | Canvas view, tools, snapping, drawing, interaction, contours, 3D view, info panel. |
-| `src/panels.js` | Selection pop-up, section-cut side panel, stiffness-matrix inspector. |
+| `src/panels.js` | Selection pop-up and section-cut side panel. |
+| `src/matrix.js` | Stiffness-matrix inspector (virtual canvas, zoom, equations, pop-out). |
+| `src/interrogate.js` | Element interrogation panel. |
+| `src/describe.js` | Result descriptions and diagrams. |
 | `src/content.js` | Examples, gallery, welcome guide, dialogs, start-up. |
 | `src/style.css` | Theme (Frame Pusher v2 neon tokens) and layout. |
 | `src/body.html` | Page markup. |
