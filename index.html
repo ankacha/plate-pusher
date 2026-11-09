@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark"><head><meta charset="utf-8"><title>Plate Pusher v1.2</title>
+<html lang="en" data-theme="dark"><head><meta charset="utf-8"><title>Plate Pusher v1.3</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 /* ===== Plate Pusher theme: the Frame Pusher v2 neon tokens, surfaces and controls ===== */
@@ -178,10 +178,10 @@ canvas#cv{width:100%;height:100%;display:block;touch-action:none;cursor:crosshai
 .dgrp{display:inline-flex;align-items:center;gap:6px;position:relative}#anSp{position:absolute;bottom:calc(100% + 10px);left:0;z-index:8;display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:8px 12px;background:var(--panel);border:1px solid color-mix(in srgb,var(--acc) 55%,var(--line));border-radius:12px;box-shadow:var(--sh);font-size:12px;white-space:nowrap}#anSp[hidden]{display:none}#anSp input{width:120px}#anSp b{min-width:34px;text-align:right;font-variant-numeric:tabular-nums}#anSp .anR{display:flex;align-items:center;gap:8px}#anSp .anR>span{width:52px;color:var(--mut)}#anK{gap:4px!important}#anK button{padding:1px 0;width:28px;justify-content:center;font-size:12px;border-radius:999px}#anSp::after{content:'';position:absolute;top:100%;left:34px;border:6px solid transparent;border-top-color:color-mix(in srgb,var(--acc) 55%,var(--line))}#anB{padding:2px 9px;font-size:12px;border-radius:999px;min-width:84px;justify-content:center}
 .anN{margin:0;max-width:250px;white-space:normal;color:var(--mut);font-size:11px;line-height:1.4}
 </style></head><body>
-<nav id="top"><span class="tt">▦ Plate Pusher</span><small>v1.2</small>
+<nav id="top"><span class="tt">▦ Plate Pusher</span><small>v1.3</small>
 <button id="bGuide" title="Welcome guide">? Guide</button><button id="bGal" title="Examples gallery">▦ Examples</button><i></i>
 <button id="bMat" title="Stiffness matrix inspector (K)">▤ Stiffness matrix</button><button id="bVer" title="Run the verification suite against closed-form solutions">✓ Verification</button><button id="bMeth" title="Elements, sign conventions and assumptions">ⓘ Method</button><i></i>
-<button id="bIO" title="Save or open a model (Ctrl+S)">⇅ Save / open</button><button id="bNew" title="Clear the canvas">✕ New</button><button id="bKeys" title="Keyboard shortcuts">⌨ Keys</button></nav>
+<button id="bRep" title="A4 calculation sheets of the model and results, as a PDF">⎙ Report</button><button id="bIO" title="Save or open a model (Ctrl+S)">⇅ Save / open</button><button id="bNew" title="Clear the canvas">✕ New</button><button id="bKeys" title="Keyboard shortcuts">⌨ Keys</button></nav>
 <aside id="tools"><div class="gh full" style="margin-top:2px">Example plates</div><div class="preRow full"><select id="pre"><option value="">Load example…</option></select><button id="preG" title="Browse the examples gallery">▦</button></div></aside>
 <main><div id="mid"><div id="wrap"><canvas id="cv"></canvas>
 <div id="dock"><div id="dsb" class="card"><button id="dsT"><span>⇕ Display</span><span id="dsA">▾</span></button><div id="dsB"></div></div><div id="lgd" class="card" hidden><div class="lt"><span id="lgN"></span><i id="lgU"></i></div><canvas id="lgC"></canvas><details id="lgDs"><summary>About this result</summary><div id="lgDB"></div></details></div><div id="info" class="card"><button id="infoT" title="Collapse">▾</button><div id="infoB"></div></div></div>
@@ -599,6 +599,26 @@ function runVerification(){const out=[],G=h=>{out.push({h,t0:Date.now()})},T=(na
   let s=0;R.B.R.forEach((v,d)=>{if(d%3==0)s+=v});T('  reactions sum to the load (kN)',-q*4,s,1e-9,'equilibrium')}
  {const m=vModel({shapes:[{id:1,kind:'plate',pts:vRect(0,0,4,2)}],mesh:{h:.1}}),R=analyse(m,{always:true}),nat=(()=>{/* natural (row-by-row) profile for comparison */const nd=3,n=R.mesh.nodes.length,fc=new Int32Array(nd*n).map((_,i)=>i);R.mesh.els.forEach(e=>{const dd=[];e.forEach(i=>{for(let c=0;c<nd;c++)dd.push(nd*i+c)});dd.forEach(a=>dd.forEach(b=>{if(b<fc[a])fc[a]=b}))});let p=0;fc.forEach((f,i)=>p+=i-f+1);return p})();
   T('Reverse Cuthill–McKee ordering shrinks the skyline: RCM ÷ natural profile = '+(R.B.prof/nat).toFixed(2)+' (1 = smaller)',1,R.B.prof<nat?1:0,0,'profile '+R.B.prof+' vs '+nat,1)}
+ G('Report (v1.3): calculation sheets and PDF');
+ {const M0=M,R0=R;try{let bad=[],nEx=0,minP=99,chars=new Set();const st=Object.assign(rpLoadSt(),{notes:'Check note'});Object.keys(st.sel).forEach(k=>st.sel[k]=1);
+  Object.keys(PRESETS).forEach(k=>{M=PRESETS[k].f();R=analyse(M);nEx++;try{const pg=rpMake(st);minP=Math.min(minP,pg.length);pg.forEach(p=>p.it.forEach(o=>{if(o.t=='t')for(const ch of o.s){const c=ch.codePointAt(0);if(!(c>=32&&c<=126||PW_U[c]||PW_S[c]))chars.add(ch)}}))}catch(e){bad.push(k+': '+e.message)}});
+  T('Every example ('+nEx+') makes its sheets with every section ticked',0,bad.length,0,bad.join('; ')||'at least '+minP+' sheets each',1);
+  T('Every character on the sheets is in the PDF core fonts',0,chars.size,0,[...chars].join(' ')||'Helvetica + Symbol',1);
+  M=PRESETS.ss6.f();R=analyse(M);const pages=rpMake(st),by=rpPDF(pages,{title:'t',author:'a',subject:'s'});let s='';for(let i=0;i<by.length;i++)s+=String.fromCharCode(by[i]);
+  const xr=+/startxref\n(\d+)/.exec(s)[1],offs=s.slice(xr).split('\n').slice(3).filter(l=>/ n $/.test(l)).map(l=>+l.slice(0,10));
+  T('PDF: header, trailer and an xref entry that points at every object',1,s.startsWith('%PDF-1.4')&&s.trimEnd().endsWith('%%EOF')&&offs.length>0&&offs.every((o,i)=>s.startsWith((i+1)+' 0 obj',o))?1:0,0,offs.length+' objects, '+pages.length+' pages, '+(by.length/1024).toFixed(0)+' kB',1);
+  T('PDF page count = preview sheets',pages.length,(s.match(/\/Type \/Page /g)||[]).length,0,'',1);
+  /* the banded contour is drawn as polygons that tile the plate exactly: their area equals the plate area */
+  const o={avg:true,bands:12,pal:'auto',mono:false},pg={it:[]},Pm=(x,y)=>[10*x,-10*y];rpContour(pg,Pm,'w',rpRange('w',o),o);let A=0;pg.it.forEach(q=>{if(q.t=='p'&&q.fill)A+=Math.abs((q.multi||[q.pts]).reduce((t,r)=>t+polyArea(r),0))/100});
+  T('Vector contour bands tile the plate: area of the band polygons (m²)',36,A,1e-4,'6 × 6 m plate, w, 12 bands');
+  {const o2=Object.assign({},o,{avg:false}),q2={it:[]};rpContour(q2,Pm,'Mx',rpRange('Mx',o2),o2);let A2=0;q2.it.forEach(q=>{if(q.t=='p'&&q.fill)A2+=Math.abs((q.multi||[q.pts]).reduce((t,r)=>t+polyArea(r),0))/100});T('… and unaveraged (element) values, Mx',36,A2,1e-4,'bands jump between elements')}
+  const pg2={it:[]};rpContour(pg2,Pm,'Mxy',rpRange('Mxy',o),o);let ok=1;const rg=rpRange('Mxy',o),f=R.F.Mxy.n;pg2.it.forEach(q=>{if(q.t!='p')return;const b=rg.col.indexOf(q.fill);if(b<0)ok=0});
+  T('Every contour polygon takes one of the legend colours (Mxy, diverging scale)',1,ok,0,'',1);
+  let tz=0;M.sups.forEach((s_,i)=>{const r=supReaction(i);if(r)tz+=r.z});T('Reactions table total = applied load (simply supported 6 × 6 m, 10 kPa)',360,tz,1e-6);
+  const e=rpEq('B');T('Report equilibrium check passes',1,e.ok?1:0,0,'ΣF '+e.F.toFixed(3)+' kN, ΣR '+e.R.toFixed(3)+' kN',1);
+  const b=rpBlocks(Object.assign({},st,{sel:st.sel,two:true,bands:12,pal:'auto',avg:true,dp:2,size:'m'})),nf=b.filter(q=>q.k=='fig').length;
+  T('Two plots per row: Mx and My share one figure',1,b.some(q=>q.k=='fig'&&/Mx \(left\) and Moment My \(right\)/.test(q.cap))?1:0,0,nf+' figures',1)
+ }finally{M=M0;R=R0}}
  }catch(e){out.push({name:'Verification error: '+e.message,exp:1,got:0,tol:0,ok:false})}
  return out}
 /* ===================================================================================================
@@ -629,7 +649,7 @@ function fixIds(){let m=0;['shapes','sups','loads','anns','cuts'].forEach(k=>(M[
 let solveT=0;
 function update(now){dirty=true;syncUR();clearTimeout(solveT);if(now)runSolve();else solveT=setTimeout(runSolve,0)}
 function runSolve(){dirty=false;try{R=M.shapes.some(s=>s.kind=='plate')?analyse(M):null;lastSolve=R?R.ms:0}catch(e){console.error(e);R=null;toast('Analysis failed: '+e.message,1)}
- autoField();buildFieldSel();buildInfo();if(typeof sideUpdate=='function')sideUpdate();if(typeof hmUpdate=='function')hmUpdate();if(typeof popRes=='function')popRes();draw();saveLocal()}
+ autoField();buildFieldSel();buildInfo();if(typeof sideUpdate=='function')sideUpdate();if(typeof hmUpdate=='function')hmUpdate();if(typeof popRes=='function')popRes();draw();saveLocal();try{rpQueue()}catch(e){}}
 function saveLocal(){try{localStorage.setItem('pp_model',snapM())}catch(e){}}
 /* choose a sensible result when the current one has nothing to show */
 let fieldUser=false;
@@ -1592,7 +1612,434 @@ function openIO(){const txt=JSON.stringify({app:'Plate Pusher',v:1,model:JSON.pa
  $('ioF').onchange=()=>{const f=$('ioF').files[0];if(!f)return;f.text().then(t=>{$('ioT').value=t;ioLoad(t)})};$('ioLd').onclick=()=>ioLoad($('ioT').value)}
 function ioLoad(t){try{const o=JSON.parse(t),m=o.model||o;if(!m.shapes||!m.mat)throw new Error('not a Plate Pusher model');pushU();M=Object.assign(blankModel(),m);M.mesh=Object.assign({h:.5,zones:[]},m.mesh||{});['sups','loads','anns','cuts'].forEach(k=>M[k]=M[k]||[]);fixIds();sel=null;sideOpen(null);closeDlg();runSolve();fit();toast('Model loaded.')}catch(e){toast('Could not load: '+e.message,1)}}
 function newModel(silent){if(!silent&&M.shapes.length){openDlg('New','Clear the <span>canvas</span>?','<p class="dlgL" style="margin:0 0 12px">This removes every plate, support, load, cut and note. Undo (Ctrl+Z) brings them back.</p><div style="display:flex;gap:8px;justify-content:flex-end"><button id="nwNo">Cancel</button><button class="on" id="nwYes">Clear</button></div>');$('nwNo').onclick=closeDlg;$('nwYes').onclick=()=>{closeDlg();newModel(true)};return}pushU();M=blankModel();sel=null;poly=null;sideOpen(null);hm.el=null;R=null;setTool('plate');runSolve();S=40;ox=W*.25;oy=H*.75;draw()}
-$('bGuide').onclick=showGuide;$('bGal').onclick=showGal;$('preG').onclick=showGal;$('bVer').onclick=runVer;$('bMeth').onclick=showMeth;$('bKeys').onclick=showKeys;$('bIO').onclick=openIO;$('bNew').onclick=()=>newModel();
+$('bGuide').onclick=showGuide;$('bGal').onclick=showGal;$('preG').onclick=showGal;$('bVer').onclick=runVer;$('bMeth').onclick=showMeth;$('bKeys').onclick=showKeys;$('bIO').onclick=openIO;$('bNew').onclick=()=>newModel();$('bRep').onclick=()=>rpOpen();
+const RP={win:null,host:null,doc:null,t:0,st:null,pages:[],zoom:'fit'};
+const PW_H=[278,278,355,556,556,889,667,191,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,278,278,584,584,584,556,1015,667,667,722,722,667,611,778,722,278,500,667,556,833,722,778,667,778,722,667,611,722,667,944,667,667,611,278,278,278,469,556,333,556,556,500,556,556,278,556,556,222,222,500,222,833,556,556,556,556,333,500,278,556,500,722,500,500,500,334,260,334,584,0,556,0,222,556,333,1000,556,556,333,1000,667,333,1000,0,611,0,0,222,222,333,333,350,556,1000,333,1000,500,333,944,0,500,500,278,333,556,556,556,556,260,556,333,737,370,556,584,333,737,333,400,584,333,333,333,556,537,278,333,333,365,556,834,834,834,611,667,667,667,667,667,667,1000,722,667,667,667,667,278,278,278,278,722,722,778,778,778,778,778,584,778,722,722,722,722,667,667,611,556,556,556,556,556,556,889,500,556,556,556,556,278,278,278,278,556,556,556,556,556,556,556,584,611,556,556,556,556,500,556,500],PW_B=[278,333,474,556,556,889,722,238,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,333,333,584,584,584,611,975,722,722,722,722,667,611,778,722,278,556,722,611,833,722,778,667,778,722,667,611,722,667,944,667,667,611,333,278,333,584,556,333,556,611,556,611,556,333,611,611,278,278,556,278,889,611,611,611,611,389,556,333,611,556,778,556,556,500,389,280,389,584,0,556,0,278,556,500,1000,556,556,333,1000,667,333,1000,0,611,0,0,278,278,500,500,350,556,1000,333,1000,556,333,944,0,500,556,278,333,556,556,556,556,280,556,333,737,370,556,584,333,737,333,400,584,333,333,333,611,556,278,333,333,365,556,834,834,834,611,722,722,722,722,722,722,1000,722,667,667,667,667,278,278,278,278,722,722,778,778,778,778,778,584,778,722,722,722,722,667,667,611,556,556,556,556,556,556,889,556,556,556,556,556,278,278,278,278,611,611,611,611,611,611,611,584,611,611,611,611,611,556,611,556],PW_U={"160":160,"161":161,"162":162,"163":163,"164":164,"165":165,"166":166,"167":167,"168":168,"169":169,"170":170,"171":171,"172":172,"173":173,"174":174,"175":175,"176":176,"177":177,"178":178,"179":179,"180":180,"181":181,"182":182,"183":183,"184":184,"185":185,"186":186,"187":187,"188":188,"189":189,"190":190,"191":191,"192":192,"193":193,"194":194,"195":195,"196":196,"197":197,"198":198,"199":199,"200":200,"201":201,"202":202,"203":203,"204":204,"205":205,"206":206,"207":207,"208":208,"209":209,"210":210,"211":211,"212":212,"213":213,"214":214,"215":215,"216":216,"217":217,"218":218,"219":219,"220":220,"221":221,"222":222,"223":223,"224":224,"225":225,"226":226,"227":227,"228":228,"229":229,"230":230,"231":231,"232":232,"233":233,"234":234,"235":235,"236":236,"237":237,"238":238,"239":239,"240":240,"241":241,"242":242,"243":243,"244":244,"245":245,"246":246,"247":247,"248":248,"249":249,"250":250,"251":251,"252":252,"253":253,"254":254,"255":255,"338":140,"339":156,"352":138,"353":154,"376":159,"381":142,"382":158,"402":131,"710":136,"732":152,"8211":150,"8212":151,"8216":145,"8217":146,"8218":130,"8220":147,"8221":148,"8222":132,"8224":134,"8225":135,"8226":149,"8230":133,"8240":137,"8249":139,"8250":155,"8364":128,"8482":153},PW_S={"957":[110,521],"916":[68,612],"931":[83,592],"937":[87,768],"945":[97,631],"946":[98,549],"947":[103,411],"948":[100,494],"949":[101,439],"952":[113,521],"955":[108,549],"956":[109,576],"960":[112,549],"963":[115,603],"964":[116,439],"966":[102,521],"969":[119,686],"8592":[172,987],"8593":[173,603],"8594":[174,987],"8595":[175,603],"8706":[182,494],"8722":[45,549],"8730":[214,549],"8734":[165,713],"8747":[242,274],"8776":[187,549],"8804":[163,549],"8805":[179,549]};
+const RPK=.3527778;/* mm per pt */
+function rpRuns(s,f0){const out=[];let cur=null;for(const ch of String(s).replace(/²/g,'^2').replace(/³/g,'^3')){const cp=ch.codePointAt(0);let f=f0,c,w;
+  if(cp>=32&&cp<=126)c=cp;else if(PW_U[cp])c=PW_U[cp];else if(PW_S[cp]){f='S';c=PW_S[cp][0];w=PW_S[cp][1]}else c=63;
+  if(w===undefined)w=(f0=='B'?PW_B:PW_H)[c-32]||556;if(!cur||cur.f!=f){cur={f,c:[],w:0};out.push(cur)}cur.c.push(c);cur.w+=w}return out}
+const rpW=(s,pt,f)=>rpRuns(s,f||'H').reduce((t,r)=>t+r.w,0)*pt/1000*RPK;
+/* ---- page geometry (mm) ---- */
+const RPG={W:210,H:297,X0:12,X1:198,XR:28,XO:166,HT:10,HH:27,BT:39,BB:280};RPG.MX=RPG.XR+3;RPG.MW=RPG.XO-3-RPG.MX;
+/* ---- draw-list helpers ---- */
+const rpL=(pg,x1,y1,x2,y2,w,c,d)=>pg.it.push({t:'l',x1,y1,x2,y2,w:w||.2,c:c||'#000',d});
+const rpP=(pg,pts,o)=>pg.it.push(Object.assign({t:'p',pts},o));
+const rpR=(pg,x,y,w,h,o)=>rpP(pg,[[x,y],[x+w,y],[x+w,y+h],[x,y+h]],Object.assign({cl:1},o));
+const rpT=(pg,x,y,s,pt,o)=>{o=o||{};if(s===''||s==null)return;pg.it.push({t:'t',x,y,s:String(s).replace(/²/g,'^2').replace(/³/g,'^3'),pt,f:o.f||'H',a:o.a||'l',c:o.c||'#000'})};
+const rpCirc=(cx,cy,r,n)=>{n=n||20;const p=[];for(let i=0;i<n;i++){const a=i/n*2*Math.PI;p.push([cx+r*Math.cos(a),cy+r*Math.sin(a)])}return p};
+function rpWrap(s,pt,w,f){const out=[];String(s).split('\n').forEach(par=>{let line='';par.split(/\s+/).forEach(wd=>{if(!wd)return;const t=line?line+' '+wd:wd;if(rpW(t,pt,f)<=w||!line)line=t;else{out.push(line);line=wd}});out.push(line)});return out}
+const rpMix=(c,k)=>{const n=parseInt(c.slice(1),16),r=n>>16,g=n>>8&255,b=n&255,m=v=>Math.round(v+(255-v)*k).toString(16).padStart(2,'0');return'#'+m(r)+m(g)+m(b)};
+function rpF(v,d){if(!isFinite(v))return'–';const s=Math.abs(v)<.5*Math.pow(10,-d)?0:v;return s.toFixed(d)}
+const rpEsc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function rpSVG(pg,wpx){let s='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 210 297" width="'+wpx+'" height="'+(wpx*297/210)+'" style="background:#fff"><rect width="210" height="297" fill="#fff"/>';
+ pg.it.forEach(o=>{if(o.t=='l')s+='<line x1="'+o.x1.toFixed(2)+'" y1="'+o.y1.toFixed(2)+'" x2="'+o.x2.toFixed(2)+'" y2="'+o.y2.toFixed(2)+'" stroke="'+o.c+'" stroke-width="'+o.w+'"'+(o.d?' stroke-dasharray="'+o.d.join(' ')+'"':'')+'/>';
+  else if(o.t=='p'){const rg=q=>q.map((p,i)=>(i?'L':'M')+p[0].toFixed(2)+' '+p[1].toFixed(2)).join(''),d=o.multi?o.multi.map(q=>rg(q)+'Z').join(''):rg(o.pts)+(o.cl?'Z':'');s+='<path d="'+d+'" fill="'+(o.fill||'none')+'" stroke="'+(o.st||'none')+'" stroke-width="'+(o.w||.2)+'" stroke-linejoin="round"'+(o.d?' stroke-dasharray="'+o.d.join(' ')+'"':'')+'/>'}
+  else if(o.t=='t'){const fs=(o.pt*RPK).toFixed(3),an=o.a=='c'?'middle':o.a=='r'?'end':'start';s+='<text x="'+o.x.toFixed(2)+'" y="'+o.y.toFixed(2)+'" font-size="'+fs+'" font-family="Helvetica,Arial,\'Liberation Sans\',sans-serif"'+(o.f=='B'?' font-weight="bold"':'')+(o.f=='I'?' font-style="italic"':'')+' text-anchor="'+an+'" fill="'+o.c+'" textLength="'+rpW(o.s,o.pt,o.f).toFixed(2)+'" lengthAdjust="spacingAndGlyphs" xml:space="preserve">'+rpEsc(o.s)+'</text>'}});
+ return s+'</svg>'}
+/* ---------- PDF writer (PDF 1.4, uncompressed, core fonts) ---------- */
+function rpPDF(pages,info){const K=72/25.4,H=297*K,n=v=>(+v.toFixed(2)).toString(),X=x=>n(x*K),Y=y=>n(H-y*K);
+ const col=c=>{if(c.length==4)c='#'+c[1]+c[1]+c[2]+c[2]+c[3]+c[3];const v=parseInt(c.slice(1),16);return[(v>>16)/255,(v>>8&255)/255,(v&255)/255].map(q=>n(q)).join(' ')};
+ const esc=codes=>codes.map(c=>c==40||c==41||c==92?'\\'+String.fromCharCode(c):c<32||c>126?'\\'+c.toString(8).padStart(3,'0'):String.fromCharCode(c)).join('');
+ const FN={H:'/F1',B:'/F2',S:'/F3',I:'/F4'};
+ const streams=pages.map(pg=>{const o=['1 j 0 J'];pg.it.forEach(e=>{
+  if(e.t=='l'){o.push(col(e.c)+' RG '+n(e.w*K)+' w ['+(e.d||[]).map(v=>n(v*K)).join(' ')+'] 0 d '+X(e.x1)+' '+Y(e.y1)+' m '+X(e.x2)+' '+Y(e.y2)+' l S')}
+  else if(e.t=='p'){if(!e.fill&&!e.st)return;let s='';if(e.fill)s+=col(e.fill)+' rg ';if(e.st)s+=col(e.st)+' RG '+n((e.w||.2)*K)+' w ['+(e.d||[]).map(v=>n(v*K)).join(' ')+'] 0 d ';
+   s+=(e.multi||[e.pts]).map(q=>q.map((p,i)=>X(p[0])+' '+Y(p[1])+(i?' l':' m')).join(' ')+(e.cl||e.multi?' h':'')).join(' ')+' '+(e.fill&&e.st?'B':e.fill?'f':'S');o.push(s)}
+  else if(e.t=='t'){const f0=e.f=='I'?'H':e.f,runs=rpRuns(e.s,f0),tw=runs.reduce((t,r)=>t+r.w,0)*e.pt/1000*RPK;let x=e.a=='c'?e.x-tw/2:e.a=='r'?e.x-tw:e.x;
+   let s=col(e.c)+' rg BT';runs.forEach(r=>{const f=r.f=='S'?'S':e.f;s+=' '+FN[f]+' '+n(e.pt)+' Tf 1 0 0 1 '+X(x)+' '+Y(e.y)+' Tm ('+esc(r.c)+') Tj';x+=r.w*e.pt/1000*RPK});o.push(s+' ET')}});return o.join('\n')});
+ const objs=[];const add=s=>{objs.push(s);return objs.length};
+ add('<< /Type /Catalog /Pages 2 0 R >>');add('');
+ const f1=add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>'),f2=add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>'),
+  f3=add('<< /Type /Font /Subtype /Type1 /BaseFont /Symbol >>'),f4=add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Oblique /Encoding /WinAnsiEncoding >>');
+ const ps=v=>'('+esc(rpRuns(v||'','H').flatMap(r=>r.f=='S'?r.c.map(()=>63):r.c))+')';
+ const inf=add('<< /Title '+ps(info.title)+' /Author '+ps(info.author)+' /Subject '+ps(info.subject)+' /Creator (Plate Pusher v'+VER+') /Producer (Plate Pusher report writer) /CreationDate (D:'+new Date().toISOString().replace(/[-:T]/g,'').slice(0,14)+'Z) >>');
+ const res='<< /Font << /F1 '+f1+' 0 R /F2 '+f2+' 0 R /F3 '+f3+' 0 R /F4 '+f4+' 0 R >> >>',kids=[];
+ streams.forEach(st=>{const c=add('<< /Length '+st.length+' >>\nstream\n'+st+'\nendstream');kids.push(add('<< /Type /Page /Parent 2 0 R /MediaBox [0 0 '+n(210*K)+' '+n(H)+'] /Resources '+res+' /Contents '+c+' 0 R >>'))});
+ objs[1]='<< /Type /Pages /Kids ['+kids.map(k=>k+' 0 R').join(' ')+'] /Count '+kids.length+' >>';
+ let out='%PDF-1.4\n%\xE2\xE3\xCF\xD3\n';const off=[];objs.forEach((s,i)=>{off.push(out.length);out+=(i+1)+' 0 obj\n'+s+'\nendobj\n'});
+ const xr=out.length;out+='xref\n0 '+(objs.length+1)+'\n0000000000 65535 f \n'+off.map(o=>String(o).padStart(10,'0')+' 00000 n \n').join('')+'trailer\n<< /Size '+(objs.length+1)+' /Root 1 0 R /Info '+inf+' 0 R >>\nstartxref\n'+xr+'\n%%EOF\n';
+ const b=new Uint8Array(out.length);for(let i=0;i<out.length;i++)b[i]=out.charCodeAt(i)&255;return b}
+function rpArrow(pg,x1,y1,x2,y2,c,w,hd){const l=Math.hypot(x2-x1,y2-y1)||1,ux=(x2-x1)/l,uy=(y2-y1)/l,h=hd||1.9,b=h*.38;rpL(pg,x1,y1,x2-ux*h*.6,y2-uy*h*.6,w||.3,c);
+ rpP(pg,[[x2,y2],[x2-ux*h-uy*b,y2-uy*h+ux*b],[x2-ux*h+uy*b,y2-uy*h-ux*b]],{cl:1,fill:c})}
+function rpLab(pg,boxes,F,x,y,s,pt,o){o=o||{};const w=rpW(s,pt,o.f),h=pt*RPK,a=o.a||'l',x0=a=='c'?x-w/2:a=='r'?x-w:x,tries=o.tries||[[0,0],[0,-2.4],[0,2.4],[2.5,0],[-2.5,0],[0,-4.6],[0,4.6]];
+ for(const[dx,dy]of tries){const b=[x0+dx-.4,y+dy-h*.82,x0+dx+w+.4,y+dy+h*.22];if(F&&(b[0]<F.X+.5||b[2]>F.X+F.w-.5||b[1]<F.Y+.5||b[3]>F.Y+F.h-.5))continue;
+  if(boxes.some(q=>b[0]<q[2]&&b[2]>q[0]&&b[1]<q[3]&&b[3]>q[1]))continue;boxes.push(b);if(o.bg)rpR(pg,b[0],b[1],b[2]-b[0],b[3]-b[1],{fill:'#ffffff'});rpT(pg,x+dx,y+dy,s,pt,{a,c:o.c,f:o.f});return true}return false}
+/* ===== v1.3 "Report": A4 calculation sheets of the plate model and its results, previewed as SVG and written as a vector PDF =====
+   The sheet engine (Helvetica metrics, draw lists, SVG preview, PDF writer, pagination, title block, dialogue) is Frame
+   Pusher v2.13's; this part supplies the plate content: geometry, supports, loads, the mesh, banded vector contour plots
+   with a legend, section-cut diagrams, reactions, a results summary and the method. Units kN, m; values shown in the units
+   of the result selector (mm, kNm/m, kN/m, MPa). */
+const VER='1.3';
+/* ---------- the model on paper ---------- */
+function rpBox(){let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;const a=p=>{x0=Math.min(x0,p[0]);x1=Math.max(x1,p[0]);y0=Math.min(y0,p[1]);y1=Math.max(y1,p[1])};
+ M.shapes.forEach(s=>shapePts(s).forEach(a));if(x0>x1)return{x0:0,x1:1,y0:0,y1:1};return{x0,x1,y0,y1}}
+function rpFit(w,hMax,pad){const b=rpBox(),bw=Math.max(b.x1-b.x0,1e-9),bh=Math.max(b.y1-b.y0,1e-9);let s=Math.min((w-pad.l-pad.r)/bw,(hMax-pad.t-pad.b)/bh);
+ if(!(s>0))s=1;const h=Math.min(hMax,Math.max(bh*s+pad.t+pad.b,pad.t+pad.b+4));return{s,h,b,bw,bh,pad,w}}
+function rpMap(F,X,Y){const{s,b,bw,bh,pad,w,h}=F,ox=X+pad.l+(w-pad.l-pad.r-bw*s)/2-b.x0*s,oy=Y+pad.t+(h-pad.t-pad.b+bh*s)/2+b.y0*s;return(x,y)=>[ox+x*s,oy-y*s]}
+const rpHex=c=>'#'+c.map(v=>Math.round(Math.max(0,Math.min(255,v))).toString(16).padStart(2,'0')).join('');
+const RPGREY=[[248,248,248],[95,95,95]];
+const rpRef=i=>{let s='';i++;while(i>0){const m=(i-1)%26;s=String.fromCharCode(65+m)+s;i=Math.floor((i-1)/26)}return s};
+const rpCut=c=>'S'+(M.cuts.indexOf(c)+1);
+const rpPlates=()=>M.shapes.filter(s=>s.kind=='plate'),rpHoles=()=>M.shapes.filter(s=>s.kind=='hole');
+/* hatch the inside of a set of rings (even–odd, so openings stay clear) with lines at angle a (paper), spacing sp */
+function rpHatchRings(pg,rings,sp,a,c,w){if(!rings.length)return;const ca=Math.cos(a),sa=Math.sin(a),rot=p=>[p[0]*ca+p[1]*sa,-p[0]*sa+p[1]*ca],R2=rings.map(r=>r.map(rot));
+ let y0=1e9,y1=-1e9;R2.forEach(r=>r.forEach(p=>{y0=Math.min(y0,p[1]);y1=Math.max(y1,p[1])}));
+ for(let y=y0+sp/2;y<y1;y+=sp){const xs=[];R2.forEach(r=>{for(let i=0,j=r.length-1;i<r.length;j=i++){const p=r[i],q=r[j];if((p[1]>y)!=(q[1]>y))xs.push(p[0]+(y-p[1])*(q[0]-p[0])/(q[1]-p[1]))}});
+  xs.sort((u,v)=>u-v);for(let k=0;k+1<xs.length;k+=2){const A=[xs[k]*ca-y*sa,xs[k]*sa+y*ca],B=[xs[k+1]*ca-y*sa,xs[k+1]*sa+y*ca];rpL(pg,A[0],A[1],B[0],B[1],w||.12,c)}}}
+/* the paper rings of a load or ground region: its own outline with any openings inside it */
+function rpRegion(o,P){const holes=rpHoles().map(shapePts);let rings;
+ if(o.all)rings=rpPlates().map(shapePts).concat(holes);else{const Pg=regionPts(M,o);if(!Pg)return[];rings=[Pg].concat(holes.filter(h=>{const c=h.reduce((a,p)=>[a[0]+p[0]/h.length,a[1]+p[1]/h.length],[0,0]);return pip(c[0],c[1],Pg)}))}
+ return rings.map(r=>r.map(p=>P(p[0],p[1])))}
+function rpPlateDraw(pg,P,o,stage){const pl=rpPlates(),ho=rpHoles(),ring=s=>shapePts(s).map(p=>P(p[0],p[1]));
+ if(stage!='line'){pl.forEach(s=>rpP(pg,ring(s),{cl:1,fill:o.fill||undefined}));ho.forEach(s=>rpP(pg,ring(s),{cl:1,fill:'#ffffff'}))}
+ if(stage!='fill'){pl.forEach(s=>rpP(pg,ring(s),{cl:1,st:o.oc||'#111',w:o.ow||.4}));ho.forEach(s=>rpP(pg,ring(s),{cl:1,st:o.oc||'#111',w:o.ow||.4}))}}
+/* a line support is "inner" (a wall or beam line) when the plate lies on both sides of it */
+function rpSupSide(s){const[a,b]=s.pts,L=dist(a,b)||1,nx=-(b[1]-a[1])/L,ny=(b[0]-a[0])/L,bx=rpBox(),e=1e-3*Math.max(bx.x1-bx.x0,bx.y1-bx.y0,1),
+ m=[(a[0]+b[0])/2,(a[1]+b[1])/2],l=inDomain(M,m[0]+nx*e,m[1]+ny*e),r=inDomain(M,m[0]-nx*e,m[1]-ny*e);return{inner:l&&r,out:l&&!r?-1:1,n:[nx,ny]}}
+function rpSup(pg,P,s,c,simple){
+ if(s.type=='area'){const rings=rpRegion(s,P);rings.forEach((r,i)=>{if(!s.all&&i==0)rpP(pg,r,{cl:1,st:c,w:.25,d:[1,.8]})});if(!simple)rpHatchRings(pg,rings,2.6,-Math.PI/4,rpMix(c,.45),.12);return}
+ if(s.type=='line'){const[a,b]=s.pts,A=P(a[0],a[1]),B=P(b[0],b[1]),L=Math.hypot(B[0]-A[0],B[1]-A[1])||1,tx=(B[0]-A[0])/L,ty=(B[1]-A[1])/L,sd=rpSupSide(s);
+  /* outward normal on paper (y down): world (nx,ny) → paper (nx,−ny) */
+  const nx=sd.n[0]*sd.out,ny=-sd.n[1]*sd.out;
+  if(simple){rpL(pg,A[0],A[1],B[0],B[1],s.pre=='cl'||s.pre=='fix'?.9:.6,c);return}
+  if(sd.inner){const px=-ty,py=tx,w=s.pre=='cl'||s.pre=='fix'?1.1:.8,q=[[A[0]+px*w,A[1]+py*w],[B[0]+px*w,B[1]+py*w],[B[0]-px*w,B[1]-py*w],[A[0]-px*w,A[1]-py*w]];
+   rpP(pg,q,{cl:1,fill:s.pre=='cl'||s.pre=='fix'?rpMix(c,.55):'#ffffff',st:c,w:.25});for(let d=0;d<L-.2;d+=1.3){const x=A[0]+tx*d,y=A[1]+ty*d,e=Math.min(1.3,L-d);rpL(pg,x+px*w,y+py*w,x+tx*e-px*w,y+ty*e-py*w,.12,c)}return}
+  rpL(pg,A[0],A[1],B[0],B[1],s.pre=='cl'||s.pre=='fix'?.8:.5,c);const n=Math.max(1,Math.round(L/4.2));
+  for(let i=0;i<=n;i++){const t=i/n,x=A[0]+t*(B[0]-A[0]),y=A[1]+t*(B[1]-A[1]);
+   if(s.pre=='cl'||s.pre=='fix'){if(i<n)for(let k=0;k<3;k++){const d=(k+.5)/3*L/n,X=A[0]+tx*(t*L+d),Y=A[1]+ty*(t*L+d);rpL(pg,X,Y,X+nx*1.4-tx*1.1,Y+ny*1.4-ty*1.1,.15,c)}}
+   else if(s.pre=='ss'||s.pre=='ssh'||s.pre=='pin')rpP(pg,[[x,y],[x+nx*2+tx*.9,y+ny*2+ty*.9],[x+nx*2-tx*.9,y+ny*2-ty*.9]],{cl:1,st:c,w:.18,fill:s.pre=='ss'?'#ffffff':c});
+   else if(s.pre=='rlx'||s.pre=='rly')rpP(pg,rpCirc(x+nx*1,y+ny*1,.7,12),{cl:1,st:c,w:.18,fill:'#ffffff'});
+   else if(s.pre=='spr'){const pts=[[x,y]];for(let k=1;k<=4;k++)pts.push([x+nx*.55*k+(k%2?tx:-tx)*.6,y+ny*.55*k+(k%2?ty:-ty)*.6]);pts.push([x+nx*2.6,y+ny*2.6]);rpP(pg,pts,{st:c,w:.15})}}
+  if(s.pre=='rlx'||s.pre=='rly')rpL(pg,A[0]+nx*2,A[1]+ny*2,B[0]+nx*2,B[1]+ny*2,.18,c);return}
+ const[x,y]=P(s.p[0],s.p[1]),r=1.3;
+ if(simple){rpR(pg,x-.9,y-.9,1.8,1.8,{fill:c});return}
+ if(s.pre=='col'||s.pre=='colf'){rpR(pg,x-r,y-r,2*r,2*r,{fill:rpMix(c,.35),st:c,w:.2});if(s.pre=='colf'){rpL(pg,x-r,y-r,x+r,y+r,.2,'#ffffff');rpL(pg,x+r,y-r,x-r,y+r,.2,'#ffffff')}}
+ else if(s.pre=='pin'||s.pre=='fix'){rpP(pg,[[x,y],[x-1.6,y+2.6],[x+1.6,y+2.6]],{cl:1,fill:c});rpL(pg,x-2.3,y+3.1,x+2.3,y+3.1,.25,c);if(s.pre=='fix')for(let k=-2.2;k<2;k+=.9)rpL(pg,x+k+.8,y+3.1,x+k,y+4,.12,c)}
+ else if(s.pre=='rlx'||s.pre=='rly'){const T=s.pre=='rly'?(u,v)=>[x-v,y+u]:(u,v)=>[x+u,y+v];rpP(pg,[T(0,0),T(-1.6,2.2),T(1.6,2.2)],{cl:1,st:c,w:.2,fill:'#ffffff'});[-.85,.85].forEach(u=>{const C=T(u,2.85);rpP(pg,rpCirc(C[0],C[1],.55,10),{cl:1,st:c,w:.15})});const g1=T(-2.3,3.6),g2=T(2.3,3.6);rpL(pg,g1[0],g1[1],g2[0],g2[1],.25,c)}
+ else if(s.pre=='spr'){const pts=[[x,y]];for(let k=1;k<=6;k++)pts.push([x+(k%2?.8:-.8),y+k*.55]);pts.push([x,y+3.9]);rpP(pg,pts,{st:c,w:.18});rpL(pg,x-1.6,y+4,x+1.6,y+4,.25,c);rpP(pg,rpCirc(x,y,.45,10),{cl:1,fill:c})}
+ else rpP(pg,rpCirc(x,y,1.1,14),{cl:1,st:c,w:.25})}
+function rpSupAnchor(s,P){if(s.type=='pt')return P(s.p[0],s.p[1]);if(s.type=='line'){const[a,b]=s.pts;return P((a[0]+b[0])/2,(a[1]+b[1])/2)}
+ const rings=rpRegion(s,P);if(!rings.length)return null;const r=rings[0];let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;r.forEach(p=>{x0=Math.min(x0,p[0]);x1=Math.max(x1,p[0]);y0=Math.min(y0,p[1]);y1=Math.max(y1,p[1])});return[(x0+x1)/2,(y0+y1)/2]}
+function rpSups(pg,P,boxes,FB,o,simple,refs){const c=o.mono?'#000':simple?'#8a8a8a':'#0b5f74';
+ M.sups.forEach(s=>{if(s.type=='area')rpSup(pg,P,s,c,simple)});M.sups.forEach(s=>{if(s.type!='area')rpSup(pg,P,s,c,simple)});
+ if(refs)M.sups.forEach((s,i)=>{const q=rpSupAnchor(s,P);if(!q)return;let dx=2.4,dy=-2.4;if(s.type=='line'){const sd=rpSupSide(s);if(!sd.inner){dx=sd.n[0]*sd.out*(simple?2.6:4.8);dy=-sd.n[1]*sd.out*(simple?2.6:4.8)}else{dx=2.4;dy=-2.4}}
+  const t=rpRef(i),cc=o.mono?'#000':'#0b5f74';for(const[ex,ey]of[[0,0],[2.8,0],[-2.8,0],[0,3],[0,-3],[3.6,3],[-3.6,-3]]){const x=q[0]+dx+ex,y=q[1]+dy+ey,w=rpW(t,6,'B')+1.8,b=[x-w/2,y-1.7,x+w/2,y+1.5];
+   if(b[0]<FB.X+.5||b[2]>FB.X+FB.w-.5||b[1]<FB.Y+.5||b[3]>FB.Y+FB.h-.5||boxes.some(r=>b[0]<r[2]&&b[2]>r[0]&&b[1]<r[3]&&b[3]>r[1]))continue;boxes.push(b);rpR(pg,b[0],b[1],w,3.2,{fill:'#ffffff',st:cc,w:.18});rpT(pg,x,y+.85,t,6,{a:'c',f:'B',c:cc});break}})}
+function rpCuts(pg,P,boxes,FB,o){const c=o.mono?'#000':'#8a1a8c';M.cuts.forEach(cu=>{const A=P(cu.a[0],cu.a[1]),B=P(cu.b[0],cu.b[1]);rpL(pg,A[0],A[1],B[0],B[1],.3,c,[2.2,.7,.4,.7]);
+  [A,B].forEach(p=>rpP(pg,rpCirc(p[0],p[1],.5,10),{cl:1,fill:c}));const L=Math.hypot(B[0]-A[0],B[1]-A[1])||1;rpLab(pg,boxes,FB,B[0]+(B[0]-A[0])/L*1.6,B[1]+(B[1]-A[1])/L*1.6+1,rpCut(cu),6,{a:B[0]>=A[0]?'l':'r',f:'B',c,bg:1})})}
+function rpDims(pg,P,F,X,Y){const pts=[];rpPlates().forEach(s=>{if(s.circ){pts.push([s.c[0]-s.r,s.c[1]-s.r],[s.c[0]+s.r,s.c[1]+s.r],s.c)}else pts.push(...shapePts(s))});rpHoles().forEach(s=>{if(s.circ)pts.push([s.c[0]-s.r,s.c[1]-s.r],[s.c[0]+s.r,s.c[1]+s.r]);else pts.push(...shapePts(s))});
+ const u=a=>{const o=[];a.sort((p,q)=>p-q).forEach(v=>{if(!o.length||v-o[o.length-1]>1e-6)o.push(v)});return o},xs=u(pts.map(p=>+p[0].toFixed(4))),ys=u(pts.map(p=>+p[1].toFixed(4))),c='#555',b=F.b,tick=(x,y)=>rpL(pg,x-.8,y+.8,x+.8,y-.8,.25,c);
+ const thin=(a,min)=>{/* keep the ends and drop interior positions closer than min mm on paper to the last one kept */const o=[a[0]];for(let i=1;i<a.length-1;i++)if(Math.abs(a[i]-o[o.length-1])*F.s>=min)o.push(a[i]);if(a.length>1){if(Math.abs(a[a.length-1]-o[o.length-1])*F.s<min&&o.length>1)o.pop();o.push(a[a.length-1])}return o};
+ if(xs.length>1){const xx=thin(xs,6),yy=Y+F.h-4;xx.forEach(x=>{const[px,py]=P(x,b.y0);rpL(pg,px,py+2.2,px,yy+1.2,.1,c);tick(px,yy)});rpL(pg,P(xx[0],0)[0],yy,P(xx[xx.length-1],0)[0],yy,.15,c);
+  for(let i=1;i<xx.length;i++){const a=P(xx[i-1],0)[0],e=P(xx[i],0)[0],t=rpF(xx[i]-xx[i-1],2);if(e-a>rpW(t,6)+1)rpT(pg,(a+e)/2,yy-.8,t,6,{a:'c',c})}
+  if(xx.length>2){const t=rpF(xx[xx.length-1]-xx[0],2);rpT(pg,P(xx[xx.length-1],0)[0]+1.5,yy+1,t,6,{c,f:'B'})}}
+ if(ys.length>1){const yv=thin(ys,4.5),xx=X+5.5;yv.forEach(y=>{const[px,py]=P(b.x0,y);rpL(pg,xx-1.2,py,px-2.2,py,.1,c);tick(xx,py)});rpL(pg,xx,P(0,yv[0])[1],xx,P(0,yv[yv.length-1])[1],.15,c);
+  for(let i=1;i<yv.length;i++){const a=P(0,yv[i-1])[1],e=P(0,yv[i])[1],t=rpF(yv[i]-yv[i-1],2);if(a-e>3.2)rpT(pg,xx-.9,(a+e)/2+1,t,6,{a:'r',c})}}}
+function rpMeshDraw(pg,P,c,w){if(!R||R.empty)return;const N=R.mesh.nodes,seen=new Set();R.mesh.els.forEach(e=>{for(let i=0;i<4;i++){const a=e[i],b=e[(i+1)%4],k=a<b?a+'_'+b:b+'_'+a;if(seen.has(k))continue;seen.add(k);const A=P(N[a].x,N[a].y),B=P(N[b].x,N[b].y);rpL(pg,A[0],A[1],B[0],B[1],w,c)}})}
+/* ---------- loads on paper ---------- */
+function rpLoads(pg,P,c,ca,boxes,FB,o){const dp=o.dp;
+ M.loads.forEach(l=>{if(l.kind!='area')return;const rings=rpRegion(l,P);if(!rings.length)return;rpHatchRings(pg,rings,1.8,Math.PI/4,rpMix(c,.25),.12);if(!l.all&&l.sid==null)rpP(pg,rings[0],{cl:1,st:c,w:.3})});
+ M.loads.forEach(l=>{if(l.kind=='area'){const rings=rpRegion(l,P);if(!rings.length)return;const r=rings[0];let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;r.forEach(p=>{x0=Math.min(x0,p[0]);x1=Math.max(x1,p[0]);y0=Math.min(y0,p[1]);y1=Math.max(y1,p[1])});
+   rpLab(pg,boxes,FB,(x0+x1)/2,(y0+y1)/2+1,'q = '+rpF(l.q,dp)+' kPa'+(l.q<0?' (up)':''),6.4,{a:'c',c,f:'B',bg:1,tries:[[0,0],[0,-4],[0,4],[0,-8],[0,8],[-10,0],[10,0]]});return}
+  if(l.kind=='line'){const[a,b]=l.pts,A=P(a[0],a[1]),B=P(b[0],b[1]),L=Math.hypot(B[0]-A[0],B[1]-A[1])||1,n=Math.max(1,Math.round(L/5));rpL(pg,A[0],A[1],B[0],B[1],.55,c);
+   for(let i=0;i<=n;i++){const t=i/n,x=A[0]+t*(B[0]-A[0]),y=A[1]+t*(B[1]-A[1]);rpZ(pg,x,y,.85,l.p>=0,c)}
+   const nx=-(B[1]-A[1])/L,ny=(B[0]-A[0])/L;rpLab(pg,boxes,FB,(A[0]+B[0])/2+nx*2.8,(A[1]+B[1])/2+ny*2.8+1,rpF(Math.abs(l.p),dp)+' kN/m'+(l.p<0?' (up)':''),6.2,{a:'c',c,f:'B',bg:1,tries:[[0,0],[-nx*5.6,-ny*5.6],[0,-3],[0,3],[6,0],[-6,0]]});return}
+  if(l.kind=='pt'){const[x,y]=P(l.p[0],l.p[1]);rpP(pg,rpCirc(x,y,1.6,18),{cl:1,fill:'#ffffff'});rpZ(pg,x,y,1.6,l.P>=0,c);rpLab(pg,boxes,FB,x+2.2,y-2,rpF(Math.abs(l.P),dp)+' kN'+(l.P<0?' (up)':''),6.4,{c,f:'B',bg:1,tries:[[0,0],[-4.4-rpW(rpF(Math.abs(l.P),dp)+' kN',6.4,'B'),0],[0,5.4],[-4.4-rpW(rpF(Math.abs(l.P),dp)+' kN',6.4,'B'),5.4]]});return}
+  if(l.kind=='force'){const[x,y]=P(l.p[0],l.p[1]),m=Math.hypot(l.fx,l.fy)||1,ux=l.fx/m,uy=-l.fy/m,x0=x-ux*10,y0=y-uy*10;rpArrow(pg,x0,y0,x-ux*.6,y-uy*.6,ca,.35,2.1);rpP(pg,rpCirc(x,y,.5,10),{cl:1,fill:ca});
+   const t=rpF(m,dp)+' kN';rpLab(pg,boxes,FB,x0-ux*1.2,y0-uy*1.2+(uy>.3?-.6:uy<-.3?2.2:1),t,6.4,{a:ux>.3?'r':ux<-.3?'l':'c',c:ca,f:'B',bg:1,tries:[[0,0],[0,3.2],[0,-3.2],[4,0],[-4,0]]});return}
+  if(l.kind=='traction'){const[a,b]=l.pts,A=P(a[0],a[1]),B=P(b[0],b[1]),L=Math.hypot(B[0]-A[0],B[1]-A[1])||1,m=Math.hypot(l.qx,l.qy)||1,ux=l.qx/m,uy=-l.qy/m,len=5.5,n=Math.max(1,Math.round(L/4.5));
+   rpL(pg,A[0]-ux*len,A[1]-uy*len,B[0]-ux*len,B[1]-uy*len,.25,ca);for(let i=0;i<=n;i++){const t=i/n,x=A[0]+t*(B[0]-A[0]),y=A[1]+t*(B[1]-A[1]);rpArrow(pg,x-ux*len,y-uy*len,x-ux*.4,y-uy*.4,ca,.2,1.3)}
+   rpLab(pg,boxes,FB,(A[0]+B[0])/2-ux*(len+1.6),(A[1]+B[1])/2-uy*(len+1.6)+1,rpF(m,dp)+' kN/m',6.2,{a:ux>.3?'r':ux<-.3?'l':'c',c:ca,f:'B',bg:1,tries:[[0,0],[0,3.2],[0,-3.2],[5,0],[-5,0]]})}})}
+/* pressure symbol: a cross in a circle acts into the page (+z, down), a dot out of it */
+function rpZ(pg,x,y,r,pos,c){rpP(pg,rpCirc(x,y,r,16),{cl:1,st:c,w:.2,fill:'#ffffff'});if(pos){const d=r*.62;rpL(pg,x-d,y-d,x+d,y+d,.2,c);rpL(pg,x+d,y-d,x-d,y+d,.2,c)}else rpP(pg,rpCirc(x,y,r*.3,10),{cl:1,fill:c})}
+/* ---------- banded contours, drawn as vector polygons ---------- */
+function rpRange(key,o){const f=R.F[key],a=o.avg?f.n:f.e;let lo=Infinity,hi=-Infinity;for(const v of a){if(v<lo)lo=v;if(v>hi)hi=v}const big=Math.max(Math.abs(lo),Math.abs(hi));
+ if(Math.abs(lo)<1e-9*big)lo=0;if(Math.abs(hi)<1e-9*big)hi=0;if(!(hi>lo)){hi=lo+1e-12;lo-=1e-12}
+ const two=lo<0&&hi>0&&Math.min(-lo,hi)>.03*Math.max(-lo,hi),pal=o.mono?'grey':o.pal=='auto'?(two?'div':'plasma'):o.pal,nb=o.bands,rg={lo,hi,P:pal=='grey'?RPGREY:PALS[pal],two:two&&pal=='div',nb};
+ rg.lev=[];for(let i=0;i<=nb;i++)rg.lev.push(vOf(i/nb,rg));rg.col=[];for(let b=0;b<nb;b++)rg.col.push(rpHex(lerpC(rg.P,(b+.5)/nb)));return rg}
+const rpBand=(v,rg)=>{const t=tOf(v,rg);return Math.max(0,Math.min(rg.nb-1,Math.floor(t*rg.nb)))};
+/* clip a polygon of [x,y,v] to v ≥ lo (s = 1) or v ≤ hi (s = −1) */
+function rpClipV(poly,lev,s){const out=[];for(let i=0;i<poly.length;i++){const A=poly[i],B=poly[(i+1)%poly.length],ia=s*(A[2]-lev)>=0,ib=s*(B[2]-lev)>=0;if(ia)out.push(A);
+  if(ia!=ib){const t=(lev-A[2])/(B[2]-A[2]);out.push([A[0]+t*(B[0]-A[0]),A[1]+t*(B[1]-A[1]),lev])}}return out}
+function rpElVals(key,o,k){const e=R.mesh.els[k],f=R.F[key];return e.map((n,i)=>o.avg?f.n[n]:f.e[k*4+i])}
+function rpContour(pg,P,key,rg,o){const N=R.mesh.nodes,BP=rg.col.map(()=>[]),fillP=(pts,b)=>BP[b].push(pts.map(p=>[p[0],p[1]]));
+ R.mesh.els.forEach((e,k)=>{const v=rpElVals(key,o,k),q=e.map(n=>P(N[n].x,N[n].y)),bs=v.map(x=>rpBand(x,rg));
+  if(bs.every(b=>b==bs[0])){fillP(q,bs[0]);return}
+  const cx=(q[0][0]+q[1][0]+q[2][0]+q[3][0])/4,cy=(q[0][1]+q[1][1]+q[2][1]+q[3][1])/4,cv=(v[0]+v[1]+v[2]+v[3])/4;
+  for(let i=0;i<4;i++){const T=[[q[i][0],q[i][1],v[i]],[q[(i+1)%4][0],q[(i+1)%4][1],v[(i+1)%4]],[cx,cy,cv]],b0=Math.min(...T.map(t=>rpBand(t[2],rg))),b1=Math.max(...T.map(t=>rpBand(t[2],rg)));
+   if(b0==b1){fillP(T,b0);continue}
+   for(let b=b0;b<=b1;b++){let p=T;if(b>0)p=rpClipV(p,rg.lev[b],1);if(p.length>2&&b<rg.nb-1)p=rpClipV(p,rg.lev[b+1],-1);if(p.length>2)fillP(p,b)}}});
+ BP.forEach((ps,b)=>{if(!ps.length)return;pg.it.push({t:'p',multi:rpUnion(ps)||ps,fill:rg.col[b],st:rg.col[b],w:.1})})}
+/* outline of the union of edge-sharing polygons: orient each anticlockwise on paper, cancel every edge that is matched by its
+   reverse, then chain the rest into closed rings (holes come out reversed, so the non-zero fill is right). null if the edges do
+   not close up, e.g. unaveraged values that jump between elements; the caller then draws the pieces. */
+function rpUnion(ps){const K=p=>Math.round(p[0]*2e3)+','+Math.round(p[1]*2e3),E=new Map(),pt=new Map();
+ ps.forEach(q=>{if(polyArea(q)>0)q=q.slice().reverse();const k=q.map(K);for(let i=0;i<q.length;i++){const a=k[i],b=k[(i+1)%q.length];if(a==b)continue;pt.set(a,q[i]);const r=b+'>'+a;if(E.has(r)){const c=E.get(r);if(c>1)E.set(r,c-1);else E.delete(r)}else E.set(a+'>'+b,(E.get(a+'>'+b)||0)+1)}});
+ const out=new Map();E.forEach((c,e)=>{const[a,b]=e.split('>');for(let i=0;i<c;i++){if(!out.has(a))out.set(a,[]);out.get(a).push(b)}});const rings=[];
+ for(const[a0]of out){while(out.get(a0)&&out.get(a0).length){const ring=[pt.get(a0)];let a=a0,guard=0;for(;;){const L=out.get(a);if(!L||!L.length)return null;const b=L.pop();if(b==a0)break;ring.push(pt.get(b));a=b;if(++guard>1e6)return null}if(ring.length>2)rings.push(ring)}}
+ /* drop vertices that lie on the straight line through their neighbours (mesh nodes along a straight band edge or the plate edge) */
+ rings.forEach((r,j)=>{const o=[];for(let i=0;i<r.length;i++){const a=o.length?o[o.length-1]:r[r.length-1],b=r[i],c=r[(i+1)%r.length],cr=(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]),L=Math.hypot(c[0]-a[0],c[1]-a[1])||1;if(Math.abs(cr)/L>.004)o.push(b)}if(o.length>2)rings[j]=o});
+ return rings.length?rings:null}
+function rpIso(pg,P,key,rg,o,c){const N=R.mesh.nodes;R.mesh.els.forEach((e,k)=>{const v=rpElVals(key,o,k),q=e.map(n=>P(N[n].x,N[n].y)),cv=(v[0]+v[1]+v[2]+v[3])/4,cx=q.reduce((a,p)=>a+p[0]/4,0),cy=q.reduce((a,p)=>a+p[1]/4,0);
+  for(let i=0;i<4;i++){const T=[[q[i][0],q[i][1],v[i]],[q[(i+1)%4][0],q[(i+1)%4][1],v[(i+1)%4]],[cx,cy,cv]],lo=Math.min(T[0][2],T[1][2],T[2][2]),hi=Math.max(T[0][2],T[1][2],T[2][2]);
+   for(let j=1;j<rg.nb;j++){const L=rg.lev[j];if(L<=lo||L>=hi)continue;const pts=[];for(let a=0;a<3;a++){const A=T[a],B=T[(a+1)%3];if((A[2]-L)*(B[2]-L)<0){const t=(L-A[2])/(B[2]-A[2]);pts.push([A[0]+t*(B[0]-A[0]),A[1]+t*(B[1]-A[1])])}}
+    if(pts.length==2)rpL(pg,pts[0][0],pts[0][1],pts[1][0],pts[1][1],.1,c)}}})}
+function rpLegend(pg,rg,F,X,Y,key){const f=FLD[key].f,u=FLD[key].u,x0=X+5,x1=X+F.w-5-rpW(u,5.6)-1.5,y=Y+F.h-7.2,hb=2.2,nb=rg.nb,w=(x1-x0)/nb;
+ for(let b=0;b<nb;b++)rpR(pg,x0+b*w,y,w+.05,hb,{fill:rg.col[b]});rpR(pg,x0,y,x1-x0,hb,{st:'#555',w:.12});rpT(pg,x1+1.5,y+hb-.2,u,5.6,{c:'#333'});
+ const fmt=v=>{const a=Math.abs(v*f);return a>=1e4||a&&a<1e-3?(v*f).toExponential(1):String(+(v*f).toPrecision(a>=100?4:3))};let last=-1e9;
+ for(let i=0;i<=nb;i++){const x=x0+i*w,t=fmt(rg.lev[i]),tw=rpW(t,5.2);const lx=i==0?x:i==nb?x-tw:x-tw/2;if(lx<last+1.2&&i<nb)continue;if(i==nb&&lx<last+1.2)continue;rpL(pg,x,y+hb,x,y+hb+.7,.12,'#555');rpT(pg,lx,y+hb+3,t,5.2,{c:'#333'});last=lx+tw}}
+function rpPeaks(pg,P,key,boxes,FB,o){const f=R.F[key],F_=FLD[key],N=R.mesh.nodes,E=R.mesh.els;let mx=null,mn=null;
+ const see=(v,n)=>{if(!mx||v>mx.v)mx={v,n};if(!mn||v<mn.v)mn={v,n}};if(o.avg)f.n.forEach((v,n)=>see(v,n));else f.e.forEach((v,j)=>see(v,E[Math.floor(j/4)][j%4]));
+ const big=Math.max(Math.abs(mx.v),Math.abs(mn.v));[[mx,'max'],[mn,'min']].forEach(([q,t])=>{if(!q||Math.abs(q.v)<.02*big)return;if(t=='min'&&mn.n==mx.n)return;const[x,y]=P(N[q.n].x,N[q.n].y),s=t+' '+rpF(q.v*F_.f,o.dp);
+  rpP(pg,rpCirc(x,y,.75,12),{cl:1,fill:'#ffffff',st:'#000',w:.25});rpL(pg,x-.45,y,x+.45,y,.18,'#000');rpL(pg,x,y-.45,x,y+.45,.18,'#000');
+  const tw=rpW(s,6.2,'B');rpLab(pg,boxes,FB,x+1.4,y-1.3,s,6.2,{f:'B',bg:1,tries:[[0,0],[-2.8-tw,0],[0,3.6],[-2.8-tw,3.6],[0,-2.4],[-2.8-tw,-2.4],[0,6],[-2.8-tw,6]]})})}
+function rpDefScaleM(F,o){const u=R.Mm.u;let m=0;for(let i=0;i<u.length;i+=2)m=Math.max(m,Math.hypot(u[i],u[i+1]));if(!(m>0))return 0;if(o.dsc>0)return o.dsc;
+ const k=.07*Math.max(F.bw,F.bh)/m,e=Math.pow(10,Math.floor(Math.log10(k))),f=k/e;return(f>=5?5:f>=2?2:1)*e}
+function rpDeformed(pg,P,F,o,X,Y){const ds=rpDefScaleM(F,o);if(!ds)return;const N=R.mesh.nodes,u=R.Mm.u,cnt=new Map();R.mesh.els.forEach(e=>{for(let i=0;i<4;i++){const a=e[i],b=e[(i+1)%4],k=a<b?a+'_'+b:b+'_'+a;cnt.set(k,(cnt.get(k)||0)+1)}});
+ const Q=n=>P(N[n].x+u[2*n]*ds,N[n].y+u[2*n+1]*ds);cnt.forEach((c,k)=>{if(c!=1)return;const[a,b]=k.split('_').map(Number),A=Q(a),B=Q(b);rpL(pg,A[0],A[1],B[0],B[1],.35,o.mono?'#000':'#222')});
+ rpT(pg,X+F.w-1.5,Y+F.h-9.6,'Deformed outline, displacements ×'+(+ds.toPrecision(3)).toLocaleString('en-GB'),5.4,{a:'r',c:'#555'})}
+/* ---------- figures: plan figures share one fit, so every plan on the sheets is at the same scale for a given width ---------- */
+function rpPadOf(kind){return kind=='geom'?{l:15,r:10,t:8,b:16}:kind=='load'?{l:11,r:11,t:9,b:9}:kind=='reac'?{l:14,r:14,t:9,b:9}:kind=='mesh'?{l:5,r:5,t:5,b:5}:{l:5,r:5,t:5.5,b:13}}
+function rpPlan(kind,o,hMax,w,key){w=w||RPG.MW;const F=rpFit(w,hMax,rpPadOf(kind));return{h:F.h,w,draw:(pg,Y,X0)=>{const X=X0==null?RPG.MX:X0,P=rpMap(F,X,Y),boxes=[],FB={X,Y,w:F.w,h:F.h},pal=o.mono?{L:'#000',A:'#000',R:'#000'}:{L:'#b3125d',A:'#5b2fc0',R:'#c0261f'};
+  rpR(pg,X,Y,F.w,F.h,{st:'#c8c8c8',w:.15});
+  if(kind=='geom'){rpPlateDraw(pg,P,{fill:o.mono?'#eeeeee':'#eceaf6'},'fill');rpSups(pg,P,boxes,FB,o,false,false);rpPlateDraw(pg,P,{},'line');rpCuts(pg,P,boxes,FB,o);rpSups(pg,P,boxes,FB,o,true,M.sups.length<=16);rpDims(pg,P,F,X,Y);return}
+  if(kind=='mesh'){rpPlateDraw(pg,P,{fill:'#ffffff'},'fill');rpMeshDraw(pg,P,'#6a6a6a',.08);(M.mesh.zones||[]).forEach(z=>{if(z.pts)rpP(pg,z.pts.map(p=>P(p[0],p[1])),{cl:1,st:o.mono?'#000':'#0b7f8f',w:.3,d:[1,.7]})});rpPlateDraw(pg,P,{},'line');return}
+  if(kind=='load'){rpPlateDraw(pg,P,{fill:'#ffffff'},'fill');rpSups(pg,P,boxes,FB,o,true,false);rpPlateDraw(pg,P,{ow:.3},'line');rpLoads(pg,P,pal.L,pal.A,boxes,FB,o);return}
+  if(kind=='reac'){rpPlateDraw(pg,P,{fill:'#ffffff'},'fill');rpPlateDraw(pg,P,{ow:.25,oc:'#777'},'line');rpSups(pg,P,boxes,FB,o,false,false);if(M.sups.length<=12)rpReacLab(pg,P,pal.R,boxes,FB,o);return}
+  /* contour plot of one result */
+  const rg=rpRange(key,o);rpPlateDraw(pg,P,{fill:'#ffffff'},'fill');rpContour(pg,P,key,rg,o);if(o.mesh)rpMeshDraw(pg,P,'#4a4a4a',.05);if(o.iso)rpIso(pg,P,key,rg,o,'#222');
+  rpPlateDraw(pg,P,{ow:.3},'line');rpSups(pg,P,boxes,FB,o,true,o.num&&M.sups.length<=10);if(o.num)rpCuts(pg,P,boxes,FB,o);if(o.def&&FLD[key].s=='M')rpDeformed(pg,P,F,o,X,Y);if(o.vals)rpPeaks(pg,P,key,boxes,FB,o);rpLegend(pg,rg,F,X,Y,key)}}}
+/* a row of one or two plan figures */
+function rpRow(list,o,hMax,half){const two=list.length>1||half,gap=3,w=two?(RPG.MW-gap)/2:RPG.MW,F=list.map(q=>rpPlan(q.kind,o,hMax,w,q.key)),h=Math.max(...F.map(f=>f.h));
+ return{h,draw:(pg,Y)=>F.forEach((f,i)=>f.draw(pg,Y,RPG.MX+i*(w+gap)))}}
+/* ---------- reaction labels on the plan ---------- */
+function rpSupRes(i){const o=supReaction(i);if(!o)return null;const tB=sysOK('B')&&Math.abs(o.z)>1e-9,tM=sysOK('M')&&Math.abs(o.x)+Math.abs(o.y)>1e-9;return{o,tB,tM}}
+function rpReacLab(pg,P,c,boxes,FB,o){const dp=o.dp;M.sups.forEach((s,i)=>{const r=rpSupRes(i);if(!r||!r.tB&&!r.tM)return;const q=rpSupAnchor(s,P);if(!q)return;
+  const parts=[];if(r.tB)parts.push('R = '+rpF(r.o.z,dp)+' kN');if(r.tM)parts.push('Rx '+rpF(r.o.x,dp)+', Ry '+rpF(r.o.y,dp)+' kN');const t=rpRef(i)+': '+parts.join(' · '),tw=rpW(t,6.2,'B');
+  let dx=0,dy=0;if(s.type=='line'){const sd=rpSupSide(s);if(!sd.inner){dx=sd.n[0]*sd.out*3.4;dy=-sd.n[1]*sd.out*3.4}}
+  const a=Math.abs(dx)>1.5?(dx>0?'l':'r'):'c';rpLab(pg,boxes,FB,q[0]+dx,q[1]+dy+(dy>1?2:dy<-1?-.4:1),t,6.2,{a,c,f:'B',bg:1,tries:[[0,0],[0,3.4],[0,-3.4],[0,6.8],[0,-6.8],[tw/2+2,0],[-tw/2-2,0],[0,10],[0,-10]]})})}
+/* ---------- section-cut diagrams ---------- */
+const RPCQ={w:{s:'w',u:'mm',f:1e3,dn:1,l:'Deflection'},Mn:{s:'Mn',u:'kNm/m',f:1,l:'Bending moment'},Qn:{s:'Qn',u:'kN/m',f:1,l:'Shear'},Mnt:{s:'Mnt',u:'kNm/m',f:1,l:'Twisting moment'},Nn:{s:'Nn',u:'kN/m',f:1,l:'Normal force'},Nnt:{s:'Nnt',u:'kN/m',f:1,l:'Shear flow'},sn:{s:'σn',u:'MPa',f:1e-3,l:'Normal stress'}};
+function rpCutQs(){const q=[];if(sysOK('B'))q.push('w','Mn','Qn');if(sysOK('M'))q.push('Nn','Nnt');return q}
+function rpCutFig(cu,o){const qs=rpCutQs(),hs=15,gap=2.2,top=6,h=top+qs.length*(hs+gap)+5;return{h,draw:(pg,Y)=>{const X=RPG.MX,W=RPG.MW,d=cutSample(R,cu.a,cu.b,o.avg),P_=d.P,L=d.L,xa=X+19,xb=X+W-4,sx_=s=>xa+(xb-xa)*s/L,pal=o.mono?['#000','#000','#000','#000','#000']:['#cf5a06','#1d5fbf','#127a46','#0b7f8f','#7a2fb8'];
+  rpR(pg,X,Y,W,h,{st:'#c8c8c8',w:.15});rpT(pg,X+2,Y+4,rpCut(cu)+'   from ('+rpF(cu.a[0],2)+', '+rpF(cu.a[1],2)+') to ('+rpF(cu.b[0],2)+', '+rpF(cu.b[1],2)+'),  L = '+rpF(L,2)+' m',6.4,{f:'B',c:'#333'});
+  qs.forEach((k,qi)=>{const Q=RPCQ[k],c=pal[qi%pal.length],y0=Y+top+qi*(hs+gap)+gap,yc=y0+hs/2,vals=P_.map(p=>p.in?p[k]*Q.f:null);let m=0;vals.forEach(v=>{if(v!=null)m=Math.max(m,Math.abs(v))});
+   rpT(pg,X+2,yc-.4,Q.s,7,{f:'B',c});rpT(pg,X+2,yc+2.4,Q.u,5.4,{c:'#555'});rpL(pg,xa,yc,xb,yc,.15,'#777');rpL(pg,xa,y0,xa,y0+hs,.1,'#bbb');rpL(pg,xb,y0,xb,y0+hs,.1,'#bbb');
+   if(!(m>1e-12)||m<2e-3*cutRef(k)*Q.f){rpT(pg,(xa+xb)/2,yc-1,'≈ 0 along the cut (below 0.2 % of the peak on the plate)',5.6,{a:'c',c:'#777'});return}const kk=(hs/2-1.2)/m*(Q.dn?1:-1),fill=o.mono?'#e2e2e2':rpMix(c,.82);
+   let run=[];const flush=()=>{if(run.length>1){const poly=[[run[0][0],yc],...run,[run[run.length-1][0],yc]];rpP(pg,poly,{cl:1,fill});rpP(pg,run,{st:c,w:.3})}run=[]};
+   P_.forEach((p,i)=>{if(vals[i]==null){flush();return}run.push([sx_(p.s),yc+vals[i]*kk])});flush();
+   let iM=-1,im=-1;vals.forEach((v,i)=>{if(v==null)return;if(iM<0||v>vals[iM])iM=i;if(im<0||v<vals[im])im=i});const boxes=[],FB={X:xa-1,Y:y0-1.5,w:xb-xa+2,h:hs+3};
+   [[iM,1],[im,-1]].forEach(([i,sg])=>{if(i<0||Math.abs(vals[i])<.03*m)return;if(sg<0&&i==iM)return;const x=sx_(P_[i].s),y=yc+vals[i]*kk,t=rpF(vals[i],o.dp)+' at '+rpF(P_[i].s,2)+' m',up=(vals[i]*kk)<0;
+    rpP(pg,rpCirc(x,y,.45,10),{cl:1,fill:c});rpLab(pg,boxes,FB,x+.9,y+(up?-.8:2.6),t,5.8,{a:x>xb-25?'r':'l',c,f:'B',bg:1,tries:[[0,0],[-1.8,0],[0,up?3.4:-3.4]]})})});
+  rpT(pg,xa,Y+h-1.6,'s = 0',5.4,{c:'#555'});rpT(pg,xb,Y+h-1.6,'s = '+rpF(L,2)+' m',5.4,{a:'r',c:'#555'})}}}
+/* ---------- content ---------- */
+const RPSHP=s=>s.circ?'Circle, r = '+rpF(s.r,3)+' m':(s.pts.length==4&&s.pts.every((p,i)=>{const q=s.pts[(i+1)%4];return Math.abs(p[0]-q[0])<1e-9||Math.abs(p[1]-q[1])<1e-9})?'Rectangle':'Polygon, '+s.pts.length+' corners');
+const rpNum=v=>Math.abs(v)>=1e5||(Math.abs(v)<.01&&v!=0)?v.toExponential(3).replace('e+','e'):v.toLocaleString('en-GB',{maximumSignificantDigits:4});
+const rpXY=p=>'('+rpF(p[0],2)+', '+rpF(p[1],2)+')';
+function rpSupGeo(s){return s.type=='pt'?'Point at '+rpXY(s.p):s.type=='line'?rpXY(s.pts[0])+' – '+rpXY(s.pts[1])+(rpSupSide(s).inner?' (internal)':''):s.all?'Whole plate':s.sid!=null?'Plate / region '+s.sid:'Region, '+(s.pts||[]).length+' corners'}
+function rpLoadGeo(l){return l.kind=='area'?(l.all?'Whole plate':l.sid!=null?'Shape '+(M.shapes.findIndex(s=>s.id===l.sid)+1):'Patch, '+l.pts.length+' corners'):l.kind=='line'||l.kind=='traction'?rpXY(l.pts[0])+' – '+rpXY(l.pts[1]):'At '+rpXY(l.p)}
+function rpExt(key,avg){const f=R.F[key],N=R.mesh.nodes,E=R.mesh.els;let mx=null,mn=null;const see=(v,n)=>{if(!mx||v>mx.v)mx={v,n};if(!mn||v<mn.v)mn={v,n}};
+ if(avg)f.n.forEach((v,n)=>see(v,n));else f.e.forEach((v,j)=>see(v,E[Math.floor(j/4)][j%4]));return{mx:{v:mx.v,p:[N[mx.n].x,N[mx.n].y]},mn:{v:mn.v,p:[N[mn.n].x,N[mn.n].y]}}}
+function rpEq(s){const S_=s=='B'?R.B:R.Mm;if(s=='B'){let F=0,Rr=0;S_.F.forEach((v,d)=>{if(d%3==0)F+=v});S_.R.forEach((v,d)=>{if(d%3==0)Rr+=v});return{F,R:-Rr,ok:Math.abs(F+Rr)<=1e-6*Math.max(1,Math.abs(F))}}
+ let fx=0,fy=0,rx=0,ry=0;S_.F.forEach((v,d)=>{d%2?fy+=v:fx+=v});S_.R.forEach((v,d)=>{d%2?ry+=v:rx+=v});return{fx,fy,rx:-rx,ry:-ry,ok:Math.abs(fx+rx)+Math.abs(fy+ry)<=1e-6*Math.max(1,Math.abs(fx)+Math.abs(fy))}}
+const RPDEF={co:'',co2:'',proj:'',job:'',subj:'2D plate analysis',by:'',chk:'',cdate:'',rev:'A',start:1,pre:'',notes:'',mono:false,num:true,vals:true,dp:2,size:'m',dsc:'',two:'2',bands:12,pal:'auto',avg:'n',iso:false,mesh:false,def:true,
+ sel:{model:1,mesh:0,load:1,cur:0,defl:1,mom:1,prin:0,shear:0,wa:1,disp:1,memf:1,stress:1,cuts:1,reac:1,sum:1,meth:1,notes:1}};
+const RPITEMS=[['model','Model – plates, material, supports and mesh'],['mesh','Finite-element mesh drawing'],['load','Loading diagram and load schedule'],['cur','The result shown on the canvas'],
+ ['defl','Out-of-plane: deflection w'],['mom','Out-of-plane: moments Mx, My, Mxy'],['prin','Out-of-plane: principal moments M1, M2'],['shear','Out-of-plane: transverse shear Qx, Qy, |Q|'],['wa','Out-of-plane: Wood–Armer design moments'],
+ ['disp','In-plane: displacement |u| and deformed shape'],['memf','In-plane: membrane forces Nx, Ny, Nxy'],['stress','In-plane: principal and von Mises stresses'],
+ ['cuts','Section cuts – diagrams and resultants'],['reac','Support reactions and equilibrium check'],['sum','Results summary – extremes of every result'],['meth','Analysis method and diagnostics'],['notes','Notes (text below)']];
+const RPRES=['defl','mom','wa','disp','memf','stress','cuts','reac','sum'];
+function rpDiagFS(st){const e=rpEsc,sel=(k,l,opts)=>'<label class="rpF"><span>'+l+'</span><select data-k="'+k+'">'+opts.map(([v,t])=>'<option value="'+v+'"'+(String(st[k])==String(v)?' selected':'')+'>'+t+'</option>').join('')+'</select></label>',
+  ck=(k,l)=>'<label><input type="checkbox" data-k="'+k+'"'+(st[k]?' checked':'')+'><span>'+l+'</span></label>';
+ return'<fieldset class="rpC"><legend>Diagrams</legend>'+sel('mono','Colour',[[0,'Colour'],[1,'Black and white']]).replace('value="0" selected','value="0"'+(st.mono?'':' selected')).replace('value="1"','value="1"'+(st.mono?' selected':''))+
+  sel('size','Size',[['s','Compact'],['m','Standard'],['l','Large']])+sel('two','Layout',[['1','One plot per row'],['2','Two plots per row']])+sel('dp','Decimals',[[1,'1'],[2,'2'],[3,'3']])+
+  sel('bands','Bands',[[6,'6'],[8,'8'],[10,'10'],[12,'12'],[16,'16'],[20,'20']])+sel('pal','Palette',[['auto','Auto'],['plasma','Plasma'],['turbo','Turbo'],['div','Diverging'],['neon','Neon']])+
+  sel('avg','Values',[['n','Averaged at nodes'],['e','Unaveraged (element)']])+
+  '<label class="rpF"><span>Deform ×</span><input data-k="dsc" type="number" min="0" step="any" value="'+e(st.dsc)+'" placeholder="Auto"></label>'+
+  ck('vals','Label peak values')+ck('iso','Contour lines between bands')+ck('mesh','Mesh lines on the contour plots')+ck('num','Support and cut labels on the result plots')+ck('def','Deformed outline on the in-plane plots')+'</fieldset>'}
+function rpBlocks(o){const B=[],dp=o.dp,ok=!!(R&&!R.empty),hM=o.size=='s'?62:o.size=='l'?125:88,hM2=o.size=='s'?55:o.size=='l'?95:72;let sec=0,fig=0,tab=0;
+ const H=t=>{sec++;B.push({k:'h',t,ref:String(sec)})},Pp=(t,x)=>B.push(Object.assign({k:'p',t},x||{})),
+  Fg=(mk,cap,out)=>{fig++;B.push({k:'fig',mk,f:mk(),cap:'Figure '+fig+' – '+cap,ref:'Fig '+fig,out})},
+  Tb=(title,cols,rows,out,x)=>{if(!rows.length)return;tab++;B.push(Object.assign({k:'tbl',title:'Table '+tab+' – '+title,ref:'Tab '+tab,cols,rows,out},x||{}))};
+ const S=o.sel,f=v=>rpF(v,dp),f3=v=>rpF(v,3),okB=ok&&sysOK('B'),okM=ok&&sysOK('M');
+ const ext=k=>rpExt(k,o.avg);
+ /* contour figures: keys in rows of one or two; Output column: the peak of each */
+ const cplots=(keys,cap)=>{const per=o.two&&keys.length>1?2:1;for(let i=0;i<keys.length;i+=per){const ks=keys.slice(i,i+per),out=[];
+   ks.forEach(k=>{const e=ext(k),F_=FLD[k],big=Math.abs(e.mx.v)>=Math.abs(e.mn.v)?e.mx:e.mn;out.push({l:F_.sym+' max / min',v:f(e.mx.v*F_.f)+' / '+f(e.mn.v*F_.f)+' '+F_.u})});
+   const pair=ks.length>1,h0=per>1?hM2:hM;Fg(h=>rpRow(ks.map(k=>({kind:'con',key:k})),o,h==null?h0:Math.min(h,h0*1.4),per>1),ks.map(k=>FLD[k].lab).join(' (left) and ')+(pair?' (right)':'')+', '+FLD[ks[0]].u+(ks.length>1&&FLD[ks[1]].u!=FLD[ks[0]].u?' / '+FLD[ks[1]].u:''),out)}};
+ const noRes=(s)=>Pp(!ok?'No results: there is no plate to analyse.':(s=='B'?R.hasB?'No out-of-plane results: the plate is not adequately supported (a mechanism). Add supports and re-run.':'No out-of-plane load is applied, so there are no bending results.':R.hasM?'No in-plane results: the plate is not restrained in its own plane (a mechanism). Add in-plane supports.':'No in-plane load is applied, so there are no membrane results.'),{c:'#a00'});
+ const nP=rpPlates().length,nH=rpHoles().length,mat=M.mat,D=mat.E*mat.t**3/(12*(1-mat.nu*mat.nu));
+ if(S.model){H('Structural model');
+  Pp('Plane plate of '+nP+' plate outline'+(nP==1?'':'s')+(nH?' with '+nH+' opening'+(nH==1?'':'s'):'')+', analysed by the finite-element method for out-of-plane (bending) and in-plane (membrane) loading on the same mesh. Units: kN, m; deflections in mm, moments in kNm/m, shears and membrane forces in kN/m, stresses in MPa.'+(ok&&R.hasB&&!R.hasM?' Only out-of-plane load is applied, so no in-plane results are reported.':ok&&R.hasM&&!R.hasB?' Only in-plane load is applied, so no bending results are reported.':''));
+  Fg(h=>rpPlan('geom',o,h==null?hM:h),'Plate geometry, supports'+(M.cuts.length?' and section cuts':'')+' (dimensions in m'+(M.sups.length>16?'; the '+M.sups.length+' supports are listed in the table':'')+')',[{l:'Plates',v:String(nP)},{l:'Supports',v:String(M.sups.length)}]);
+  Tb('Plates and openings',[{h:'Item',w:22},{h:'Shape',w:46},{h:'Area (m²)',w:24,a:'r'},{h:'Extent x × y (m)',w:42,a:'r'}],M.shapes.filter(s=>s.kind=='plate'||s.kind=='hole').map(s=>{const P=shapePts(s),xs=P.map(p=>p[0]),ys=P.map(p=>p[1]);
+   return[(s.kind=='plate'?'Plate ':'Opening ')+(M.shapes.filter(q=>q.kind==s.kind).indexOf(s)+1),RPSHP(s),f3(Math.abs(polyArea(P))),f3(Math.max(...xs)-Math.min(...xs))+' × '+f3(Math.max(...ys)-Math.min(...ys))]}));
+  Pp('Material: '+((MATS[mat.pre]||[''])[0]||'Custom')+'. E = '+rpNum(mat.E/1e3)+' MPa, ν = '+mat.nu+', thickness t = '+rpF(mat.t*1000,0)+' mm; flexural rigidity D = Et³/12(1 − ν²) = '+rpNum(D)+' kNm, membrane rigidity Et/(1 − ν²) = '+rpNum(mat.E*mat.t/(1-mat.nu*mat.nu))+' kN/m.',{out:[{l:'t',v:rpF(mat.t*1000,0)+' mm'},{l:'D',v:rpNum(D)+' kNm'}]});
+  Tb('Supports',[{h:'Ref.',w:10},{h:'Type',w:50},{h:'Location (m)',w:62},{h:'Stiffness',w:28,a:'r'}],M.sups.map((s,i)=>[rpRef(i),(SUPP[s.pre]||{lab:s.pre}).lab,rpSupGeo(s),s.k>0?rpNum(s.k)+(s.type=='area'?' kN/m³':s.type=='line'?' kN/m²':' kN/m'):'–']),null,
+   {note:'w is the out-of-plane deflection, β the rotation of the normal (βt about the line), u and v the in-plane displacements. A spring stiffness on a line is per metre of line; elastic ground is a Winkler modulus.'});
+  if(ok){const zs=(M.mesh.zones||[]);Pp('Mesh: '+R.mesh.els.length.toLocaleString('en-GB')+' four-node quadrilateral elements and '+R.mesh.nodes.length.toLocaleString('en-GB')+' nodes, target element size h = '+rpF(M.mesh.h*1000,0)+' mm'+(zs.length?', refined in '+zs.length+' zone'+(zs.length==1?'':'s')+' ('+zs.map(z=>rpF(z.h*1000,0)+' mm').join(', ')+')':'')+'.',{out:[{l:'Elements',v:R.mesh.els.length.toLocaleString('en-GB')}]})}}
+ if(S.mesh&&ok){H('Finite-element mesh');Fg(h=>rpPlan('mesh',o,h==null?hM:h),'Finite-element mesh'+((M.mesh.zones||[]).length?' (refinement zones dashed)':''),[{l:'Nodes',v:R.mesh.nodes.length.toLocaleString('en-GB')}])}
+ if(S.load){H('Loading');const ld=M.loads;if(!ld.length)Pp('No loads are applied.');else{
+   Pp('Out-of-plane loads act normal to the plate and are positive in +z (into the page, downwards for gravity load): pressure q in kPa, line loads p in kN/m and point loads P in kN; ⊗ marks a load into the page and ⊙ one out of it. In-plane forces and edge tractions act in the plane of the plate in the directions drawn.'.replace('⊗','a cross').replace('⊙','a dot'));
+   let qz=0,fx=0,fy=0;ld.forEach((l,i)=>{const I=ok&&R.loadInfo[i]||{};if(I.tot)qz+=I.tot;if(I.tx)fx+=I.tx;if(I.ty)fy+=I.ty});const out=[];if(ok&&ld.some(l=>l.kind=='area'||l.kind=='line'||l.kind=='pt'))out.push({l:'Total out-of-plane',v:f(qz)+' kN'});if(ok&&ld.some(l=>l.kind=='force'||l.kind=='traction'))out.push({l:'Total in-plane Fx, Fy',v:f(fx)+', '+f(fy)+' kN'});
+   Fg(h=>rpPlan('load',o,h==null?hM:h),'Applied loads',out);
+   const KN={area:'Pressure q',line:'Line load p',pt:'Point load P',force:'In-plane force',traction:'Edge traction'};
+   Tb('Load schedule',[{h:'Load',w:11},{h:'Type',w:30},{h:'Value',w:34,a:'r'},{h:'Location (m)',w:52},{h:'Total',w:28,a:'r'}],ld.map((l,i)=>{const I=ok&&R.loadInfo[i]||{};
+    const v=l.kind=='area'?f(l.q)+' kPa':l.kind=='line'?f(l.p)+' kN/m':l.kind=='pt'?f(l.P)+' kN':l.kind=='force'?f(l.fx)+', '+f(l.fy)+' kN':f(l.qx)+', '+f(l.qy)+' kN/m';
+    const t=l.kind=='force'||l.kind=='traction'?(I.tx!=null?f(I.tx)+', '+f(I.ty)+' kN':'–'):(I.tot!=null?f(I.tot)+' kN':'–');return[String(i+1),KN[l.kind]||l.kind,v,rpLoadGeo(l),t]}),null,
+    {note:'Totals are integrated over the part of each load that lies on the plate (an opening carries no load). In-plane values are given as x, y components.'})}}
+ if(S.cur&&ok&&O.field!='none'&&FLD[O.field]&&(FLD[O.field].s=='B'?R.hasB:R.hasM)){const k=O.field,s=FLD[k].s;H('Result on the canvas: '+FLD[k].lab);if(!(s=='B'?okB:okM))noRes(s);else{Pp(DESC[k]?String(DESC[k][2]).replace(/<[^>]+>/g,'').replace(/&nbsp;/g,' '):FLD[k].lab);cplots([k])}}
+ const sysHead=(on,title,s,txt,keys)=>{if(!on||ok&&!(s=='B'?R.hasB:R.hasM))return;H(title);if(!(s=='B'?okB:okM)){noRes(s);return}if(txt)Pp(txt);cplots(keys)};
+ sysHead(S.defl,'Deflection','B','Out-of-plane deflection w, positive in +z (the direction of positive load). The peak is marked; '+(o.avg?'values are averaged at the nodes.':'values are the unaveraged element-corner values.'),['w']);
+ if(S.defl&&okB){const e=rpExt('w',true),wm=Math.abs(e.mx.v)>=Math.abs(e.mn.v)?e.mx.v:e.mn.v,[a,b,c,d]=R.mesh.ext,Ls=Math.min(b-a,d-c);Pp('Peak deflection '+f(wm*1e3)+' mm at '+rpXY(Math.abs(e.mx.v)>=Math.abs(e.mn.v)?e.mx.p:e.mn.p)+' m; the shorter plan dimension over the peak deflection is L/'+(wm?Math.round(Ls/Math.abs(wm)):'–')+'.',{out:[{l:'w peak',v:f(wm*1e3)+' mm'},{l:'Span / deflection',v:wm?'L/'+Math.round(Ls/Math.abs(wm)):'–'}]})}
+ sysHead(S.mom,'Bending moments','B','Bending moments per unit width: Mx acts on sections normal to x (it spans in x), My on sections normal to y, and Mxy is the twisting moment. Sagging (tension at the bottom face, +z side) is positive.',['Mx','My','Mxy']);
+ sysHead(S.prin,'Principal moments','B','Principal moments M1 ≥ M2 at each point, the extreme values of the bending moment over all section directions.',['M1','M2']);
+ sysHead(S.shear,'Transverse shear','B','Transverse shear forces per unit width Qx, Qy and the resultant |Q| = √(Qx² + Qy²), for checks of shear and punching near supports and concentrated loads.',['Qx','Qy','Qv']);
+ sysHead(S.wa,'Wood–Armer design moments','B','Design moments for orthogonal reinforcement in x and y by the Wood–Armer rules, which include the twisting moment: bottom-face moments (sagging, positive) and top-face moments (hogging, negative).',['WXb','WYb','WXt','WYt']);
+ sysHead(S.disp,'In-plane displacement','M','In-plane displacement magnitude |u| = √(ux² + uy²)'+(o.def?', with the deformed outline of the plate drawn magnified.':'.'),['um']);
+ sysHead(S.memf,'Membrane forces','M','Membrane forces per unit width: Nx and Ny are the normal forces in x and y (tension positive) and Nxy the in-plane shear.',['Nx','Ny','Nxy']);
+ sysHead(S.stress,'In-plane stresses','M','Principal stresses σ1 ≥ σ2 (tension positive) and the von Mises equivalent stress σvm = √(σ1² − σ1σ2 + σ2²), with σ = N / t averaged through the thickness.',['s1','s2','svm']);
+ if(S.cuts&&M.cuts.length){H('Section cuts');if(!ok||!okB&&!okM)noRes(okB?'M':'B');else{
+   Pp('Results sampled along each cut at 161 points. n is the left-hand normal of the cut (looking from its start to its end); Mn is the bending moment and Qn the shear on the section, Nn the normal and Nnt the shear membrane force. w is drawn downwards when positive, the others upwards. Resultants are integrated along the part of the cut that lies on the plate.');
+   const rows=[];M.cuts.forEach(cu=>{const d=cutSample(R,cu.a,cu.b,o.avg),r=d.res,out=[];if(okB){out.push({l:'∫Mn ds',v:f(r.Mn)+' kNm'},{l:'∫Qn ds',v:f(r.Qn)+' kN'})}if(okM)out.push({l:'∫Nn ds',v:f(r.Nn)+' kN'});
+    Fg(()=>rpCutFig(cu,o),'Section cut '+rpCut(cu)+' – '+rpCutQs().map(k=>RPCQ[k].s).join(', ')+' along the cut',out);rows.push([rpCut(cu),f3(d.ln),okB?f(r.Mn):'–',okB?f(r.Mnt):'–',okB?f(r.Qn):'–',okM?f(r.Nn):'–',okM?f(r.Nnt):'–',okM?f(r.Mz):'–'])});
+   Tb('Section-cut resultants',[{h:'Cut',w:10},{h:'On plate (m)',w:19,a:'r'},{h:'∫Mn (kNm)',w:19,a:'r'},{h:'∫Mnt (kNm)',w:19,a:'r'},{h:'∫Qn (kN)',w:18,a:'r'},{h:'∫Nn (kN)',w:18,a:'r'},{h:'∫Nnt (kN)',w:18,a:'r'},{h:'Mz (kNm)',w:18,a:'r'}],rows,null,{note:'Mz is the in-plane moment of Nn about the centre of the on-plate length of the cut.'})}}
+ if(S.reac){H('Support reactions');if(!ok||!okB&&!okM)noRes(R&&R.hasB?'B':'M');else{
+   Pp('Reactions are the forces the supports exert on the plate. Out-of-plane reactions R are positive when they oppose a positive (downward) load; in-plane reactions Rx, Ry act in +x and +y. Where two supports share a node its reaction is divided between them. q max is the peak reaction per metre along a line support.');
+   Fg(h=>rpPlan('reac',o,h==null?hM:h),'Support reactions'+(M.sups.length>12?' (with '+M.sups.length+' supports the values are given in the table only)':''),M.sups.map((s,i)=>{const r=rpSupRes(i);return r&&r.tB?{l:rpRef(i)+' R',v:f(r.o.z)+' kN'}:null}).filter(Boolean).slice(0,8));
+   let tz=0,tx=0,ty=0;const rows=M.sups.map((s,i)=>{const r=rpSupRes(i);if(!r)return null;tz+=okB?r.o.z:0;tx+=okM?r.o.x:0;ty+=okM?r.o.y:0;return[rpRef(i),(SUPP[s.pre]||{lab:s.pre}).lab,s.type=='area'?'–':String((R.supInfo[i]||{nodes:[]}).nodes.length),okB?f(r.o.z):'–',okB&&s.type=='line'?f(r.o.qmax):'–',okM?f(r.o.x):'–',okM?f(r.o.y):'–']}).filter(Boolean);
+   rows.push(['Σ','','',okB?f(tz):'',' ',okM?f(tx):'',okM?f(ty):'']);
+   Tb('Support reactions',[{h:'Ref.',w:10},{h:'Type',w:46},{h:'Nodes',w:12,a:'r'},{h:'R (kN)',w:20,a:'r'},{h:'q max (kN/m)',w:22,a:'r'},{h:'Rx (kN)',w:18,a:'r'},{h:'Ry (kN)',w:18,a:'r'}],rows,null,{boldLast:1});
+   const t=[],out=[];if(okB){const e=rpEq('B');t.push('Out-of-plane: applied load '+f(e.F)+' kN, reactions '+f(e.R)+' kN, residual '+rpF(e.F-e.R,4)+' kN');out.push({l:'Out-of-plane equilibrium',v:e.ok?'OK':'CHECK'})}
+   if(okM){const e=rpEq('M');t.push('In-plane: applied ΣFx = '+f(e.fx)+', ΣFy = '+f(e.fy)+' kN against reactions ΣRx = '+f(e.rx)+', ΣRy = '+f(e.ry)+' kN');out.push({l:'In-plane equilibrium',v:e.ok?'OK':'CHECK'})}
+   Pp('Equilibrium check. '+t.join('; ')+'. '+(out.every(q=>q.v=='OK')?'Equilibrium satisfied.':'Check the model: the reactions do not balance the loads.'),{out})}}
+ if(S.sum){H('Results summary');if(!okB&&!okM)noRes(R&&R.hasB?'B':'M');else{
+   Pp('Largest and smallest value of every result over the plate, '+(o.avg?'from the nodal averages':'from the unaveraged element-corner values')+', with the position (x, y) in m.');
+   const rows=[];Object.keys(FLD).forEach(k=>{const F_=FLD[k];if(F_.s=='B'?!okB:!okM)return;const e=rpExt(k,o.avg);rows.push([F_.lab,F_.u,f(e.mx.v*F_.f),rpXY(e.mx.p),f(e.mn.v*F_.f),rpXY(e.mn.p)])});
+   Tb('Extremes of the results',[{h:'Result',w:50},{h:'Unit',w:14},{h:'Max',w:18,a:'r'},{h:'at (x, y)',w:24,a:'r'},{h:'Min',w:18,a:'r'},{h:'at (x, y)',w:24,a:'r'}],rows)}}
+ if(S.meth){H('Analysis method and diagnostics');
+  Pp('Method. Linear-elastic finite-element analysis of a plane plate of uniform thickness. Out-of-plane loading uses four-node Reissner–Mindlin plate elements with MITC4 assumed transverse shear (Bathe–Dvorkin), three degrees of freedom per node (w, βx, βy), free of shear locking so that thin plates converge to Kirchhoff theory. In-plane loading uses four-node plane-stress elements with Wilson–Taylor incompatible modes (QM6), two degrees of freedom per node (u, v). The two systems share the mesh and are solved independently with reverse Cuthill–McKee node ordering and a skyline Cholesky factorisation; a zero or negative pivot is reported as a mechanism. Stress resultants are evaluated at the 2 × 2 Gauss points, extrapolated to the element corners and, for averaged results, averaged at the nodes. Reactions are K·u − F at the restrained degrees of freedom.');
+  Pp('Assumptions. Small displacements (no membrane–bending coupling, no buckling), isotropic linear-elastic material, plane stress, shear correction factor 5/6. Supports restrain the degrees of freedom of the mesh nodes on them; elastic ground is a Winkler foundation lumped from the element integrals.');
+  if(ok){const L=[],st=(S_,lab,nd)=>{if(!S_)return;L.push(lab+': '+S_.nf.toLocaleString('en-GB')+' free degrees of freedom of '+(nd*R.mesh.nodes.length).toLocaleString('en-GB')+(S_.ok?'':' – MECHANISM')+'.')};if(R.hasB)st(R.B,'Out-of-plane',3);if(R.hasM)st(R.Mm,'In-plane',2);
+   L.push('Mesh: '+R.mesh.els.length+' elements, '+R.nShapes+' distinct element shape'+(R.nShapes==1?'':'s')+'; solved in '+Math.round(R.ms)+' ms.');if(R.warn.length)L.push('Warnings: '+R.warn.join(' '));if(R.info.length)L.push('Notes: '+R.info.join(' '));Pp(L.join(' '))}
+  Pp('These results come from an exploratory teaching tool and must be independently checked before they are relied on for design. Check convergence by refining the mesh; peaks at re-entrant corners, point loads and point supports grow without limit as the mesh is refined.',{c:'#555',f:'I'})}
+ if(S.notes&&o.notes&&o.notes.trim()){H('Notes');Pp(o.notes.trim())}
+ return B}
+
+/* ---------- pagination ---------- */
+function rpPages(o){const G=RPG,B=rpBlocks(o),pages=[],top=G.BT+8,bot=G.BB-3;let pg,y;
+ const np=()=>{pg={it:[],oy:top};pages.push(pg);y=top};np();
+ const outs=(list,y0)=>{if(!list)return;let oy=Math.max(y0,pg.oy);list.forEach(e=>{const L=rpWrap(e.l,5.8,G.X1-G.XO-4);L.forEach((s,i)=>rpT(pg,G.XO+2,oy+2.2+i*2.4,s,5.8,{c:'#555'}));oy+=L.length*2.4+1.6;rpT(pg,G.XO+2,oy+1.2,e.v,8,{f:'B'});oy+=4.6});pg.oy=oy+1.5};
+ const ref=(s,y0,b)=>rpT(pg,G.X0+2,y0,s,b?8.5:6,{f:b?'B':'H',c:b?'#000':'#555'});
+ const hgt=b=>b.k=='h'?7.5:b.k=='p'?rpWrap(b.t,7.6,G.MW,b.f).length*3.55+2:b.k=='fig'?b.f.h+6.5:b.k=='tbl'?(b.title?5:0)+5+4.1*Math.min(3,b.rows.length):0;
+ B.forEach((b,bi)=>{
+  if(b.k=='h'){let la=0;for(let j=bi+1;j<B.length&&B[j].k!='h';j++){const hh=B[j].k=='fig'?Math.min(hgt(B[j]),Math.max(55,.62*B[j].f.h)+6.5):hgt(B[j]);la+=hh;if(B[j].k!='p')break}la=Math.min(la,130);if(y+7.5+la>bot&&y>top+1)np();else if(y>top+1)y+=2.5;ref(b.ref,y+3.6,1);rpT(pg,G.MX,y+3.6,b.t,10,{f:'B'});rpL(pg,G.MX,y+5.1,G.MX+G.MW,y+5.1,.2,'#000');y+=7.5;return}
+  if(b.k=='p'){const L=rpWrap(b.t,7.6,G.MW,b.f);let i=0;if(y+3.55*Math.min(L.length,2)>bot&&y>top+1)np();if(b.out)outs(b.out,y);while(i<L.length){if(y+3.6>bot)np();rpT(pg,G.MX,y+2.9,L[i],7.6,{c:b.c||'#111',f:b.f});y+=3.55;i++}y+=2;return}
+  if(b.k=='fig'){let h=b.f.h+6.5;if(y+h>bot&&y>top+1){const room=bot-y-8;if(room>=Math.max(55,.62*b.f.h)){b.f=b.mk(room);h=b.f.h+6.5}else np()}b.f.draw(pg,y);ref(b.ref,y+3,0);outs(b.out,y);rpT(pg,G.MX,y+b.f.h+3.6,b.cap,6.8,{f:'I',c:'#333'});y+=h+1.5;return}
+  if(b.k=='tbl'){const tw=b.cols.reduce((t,c)=>t+c.w,0),sc=Math.min(1,G.MW/tw),xs=[];let x=G.MX;b.cols.forEach(c=>{xs.push(x);x+=c.w*sc});const xe=x,rh=4.1,pt=6.8;
+   const head=(cont)=>{rpR(pg,G.MX,y,xe-G.MX,4.8,{fill:'#eeeeee'});b.cols.forEach((c,j)=>{const a=c.a||'l';rpT(pg,a=='r'?xs[j]+c.w*sc-1.2:xs[j]+1.2,y+3.4,c.h,6.3,{f:'B',a})});rpL(pg,G.MX,y,xe,y,.25);rpL(pg,G.MX,y+4.8,xe,y+4.8,.25);y+=4.8};
+   if(y+hgt(b)>bot&&y>top+1)np();rpT(pg,G.MX,y+3.3,b.title,7.2,{f:'B'});ref(b.ref,y+3.3,0);if(b.out)outs(b.out,y);y+=5;head();
+   b.rows.forEach((row,ri)=>{if(y+rh>bot){np();rpT(pg,G.MX,y+3.3,b.title+' (continued)',7.2,{f:'B'});y+=5;head()}
+    const bold=b.boldLast&&ri==b.rows.length-1;if(bold)rpL(pg,G.MX,y,xe,y,.25);
+    row.forEach((v,j)=>{const c=b.cols[j],a=c.a||'l',w=c.w*sc-2.4;let s=String(v);while(s.length>1&&rpW(s,pt,bold?'B':'H')>w)s=s.slice(0,-2)+'…';rpT(pg,a=='r'?xs[j]+c.w*sc-1.2:xs[j]+1.2,y+2.95,s,pt,{a,f:bold?'B':'H'})});
+    y+=rh;const last=ri==b.rows.length-1;if(!b.pairs||ri%2==1||last)rpL(pg,G.MX,y,xe,y,last?.25:.08,last?'#000':'#9a9a9a')});
+   if(b.note){y+=.6;rpWrap(b.note,6.2,G.MW,'I').forEach(s=>{if(y+3>bot)np();rpT(pg,G.MX,y+2.5,s,6.2,{f:'I',c:'#555'});y+=2.9})}y+=3.5;return}});
+ return pages}
+/* ---------- sheet furniture: calc-sheet header, Ref./Output columns, footer ---------- */
+function rpTrim(s,pt,w,f){s=String(s||'');while(s.length>1&&rpW(s,pt,f)>w)s=s.slice(0,-2)+'…';return s}
+function rpDate(v){if(!v)return'';const m=/^(\d{4})-(\d\d)-(\d\d)$/.exec(v);return m?m[3]+'/'+m[2]+'/'+m[1]:v}
+function rpFrame(pg,i,n,st){const G=RPG,x0=G.X0,x1=G.X1,y0=G.HT,h1=13,h2=14,xa=x0+100,xb=xa+43,g='#666',it=pg.it;pg.it=[];
+ const lab=(x,y,s)=>rpT(pg,x+1.6,y+2.9,s,5.6,{c:g}),val=(x,y,w,s,pt,f)=>rpT(pg,x+1.6,y,rpTrim(s,pt,w-3,f),pt,{f});
+ rpR(pg,x0,y0,x1-x0,h1+h2,{st:'#000',w:.4});rpL(pg,x0,y0+h1,x1,y0+h1,.25);rpL(pg,xa,y0,xa,y0+h1+h2,.25);rpL(pg,xb,y0,xb,y0+h1,.25);
+ if(st.co)val(x0+1,y0+6.2,100,st.co,12,'B');else rpT(pg,x0+2.6,y0+6.2,'Company name',12,{f:'B',c:'#bbbbbb'});val(x0+1,y0+10.6,100,st.co2||'',6.4,'H');
+ lab(xa,y0,'Job no.');val(xa,y0+9.6,43,st.job||'',9.5,'B');
+ lab(xb,y0,'Sheet no.');const sn=(+st.start||1)+i,tot=(+st.start||1)+n-1;rpT(pg,xb+1.6,y0+9.6,(st.pre||'')+sn,10,{f:'B'});rpT(pg,xb+1.6+rpW((st.pre||'')+sn,10,'B')+1.2,y0+9.6,'of '+(st.pre||'')+tot,7,{c:'#333'});
+ const r2=y0+h1;lab(x0,r2,'Project');val(x0,r2+6.1,100,st.proj||'',8.6,'B');rpL(pg,x0,r2+7,xa,r2+7,.08,'#999');lab(x0,r2+7,'Subject');val(x0,r2+13.1,100,st.subj||'',8.6,'B');
+ const c1=xa+21,c2=c1+34,mid=r2+7;rpL(pg,xa,mid,c2,mid,.18);rpL(pg,c1,r2,c1,r2+h2,.18);rpL(pg,c2,r2,c2,r2+h2,.18);
+ lab(xa,r2,'Calc. by');val(xa,r2+6.2,21,st.by||'',8,'B');lab(c1,r2,'Date');val(c1,r2+6.2,34,rpDate(st.date),8,'H');
+ lab(xa,mid,'Checked by');val(xa,mid+6.2,21,st.chk||'',8,'B');lab(c1,mid,'Date');val(c1,mid+6.2,34,rpDate(st.cdate),8,'H');
+ lab(c2,r2,'Revision');rpT(pg,(c2+x1)/2,r2+10.4,rpTrim(st.rev||'–',11,x1-c2-3,'B'),11,{f:'B',a:'c'});
+ rpR(pg,x0,G.BT,x1-x0,G.BB-G.BT,{st:'#000',w:.3});rpL(pg,G.XR,G.BT,G.XR,G.BB,.18);rpL(pg,G.XO,G.BT,G.XO,G.BB,.18);
+ rpT(pg,x0+2,G.BT+3.4,'Ref.',6,{c:g});rpT(pg,G.MX,G.BT+3.4,'Calculations',6,{c:g});rpT(pg,G.XO+2,G.BT+3.4,'Output',6,{c:g});rpL(pg,x0,G.BT+5,x1,G.BT+5,.08,'#999');
+ const now=new Date(),pd=String(now.getDate()).padStart(2,'0')+'/'+String(now.getMonth()+1).padStart(2,'0')+'/'+now.getFullYear()+' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+ rpT(pg,x0,G.BB+4.2,'Plate Pusher v'+VER+' · 2D plate finite-element analysis',5.8,{c:g});rpT(pg,(x0+x1)/2,G.BB+4.2,rpTrim(st.job?(st.job+(st.subj?' · '+st.subj:'')):(st.subj||''),5.8,70),5.8,{a:'c',c:g});rpT(pg,x1,G.BB+4.2,'Printed '+pd,5.8,{a:'r',c:g});
+ pg.it=pg.it.concat(it)}
+function rpMake(st){const o={sel:st.sel,mono:st.mono,num:st.num,vals:st.vals,dp:+st.dp,size:st.size,dsc:+st.dsc||0,notes:st.notes,two:String(st.two)=='2',bands:+st.bands||12,pal:st.pal||'auto',avg:st.avg!='e',iso:!!st.iso,mesh:!!st.mesh,def:!!st.def},pages=rpPages(o);pages.forEach((p,i)=>rpFrame(p,i,pages.length,st));return pages}
+
+/* ---------- Report / export dialogue: options on the left, live A4 preview on the right; opens in its own window ---------- */
+const RPCSS=`
+.rp{display:grid;grid-template-columns:330px minmax(0,1fr);height:100vh;background:var(--bg);color:var(--ink)}
+.rpL{overflow-y:auto;padding:12px 14px 24px;border-right:1px solid var(--line);background:var(--panel)}
+.rpL h2{font-size:15px;margin:2px 0 2px;color:var(--ink)}.rpL .rpS{color:var(--mut);font-size:12px;margin:0 0 12px;line-height:1.4}
+.rpL fieldset{border:1px solid var(--line);border-radius:10px;margin:0 0 12px;padding:6px 10px 9px}
+.rpL legend{font-size:10.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--mut);padding:0 5px}
+.rpF{display:grid;grid-template-columns:92px minmax(0,1fr);gap:6px;align-items:center;margin:5px 0}.rpF>span{font-size:12px;color:var(--mut)}
+.rpF input,.rpF select{width:100%;min-width:0;padding:4px 7px;font-size:12.5px}.rp2{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}.rp2 .rpF{grid-template-columns:62px minmax(0,1fr)}
+.rpC label{display:flex;gap:8px;align-items:flex-start;margin:5px 0;white-space:normal;font-size:12.5px;line-height:1.3;cursor:pointer}.rpC input{margin-top:1px;flex:none}
+.rpA{display:flex;gap:10px;font-size:11.5px;margin:2px 0 0}.rpA a{color:var(--acc);cursor:pointer;text-decoration:underline}
+.rpL textarea{width:100%;min-height:72px;font:12px/1.4 inherit;resize:vertical}
+.rpR{display:flex;flex-direction:column;min-width:0;min-height:0;background:color-mix(in srgb,var(--bg) 70%,#7a7590 30%)}
+.rpTb{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--panel)}
+.rpTb .sp{flex:1}.rpTb select{width:auto;padding:4px 6px}.rpTb button.pri{background:var(--acc);border-color:var(--acc);color:#fff}
+.rpMsg{font-size:12px;color:var(--mut);min-height:1em}
+.rpPv{flex:1;overflow:auto;padding:22px;display:flex;flex-direction:column;align-items:center;gap:20px}
+.rpPv svg{flex:none;box-shadow:0 6px 22px rgba(10,5,30,.35);border-radius:2px}
+.rpPv .pn{color:var(--mut);font-size:11px;margin:-14px 0 0}
+#rpOv{position:fixed;inset:0;z-index:40;background:var(--bg)}
+.rpL label.rpF{display:grid;white-space:nowrap}
+@media(max-width:760px){.rp{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);height:100vh}.rpL{max-height:45vh;border-right:0;border-bottom:1px solid var(--line)}}`;
+function rpLoadSt(){let s={};try{s=JSON.parse(localStorage.getItem('ppReport'))||{}}catch(e){}const st=Object.assign({},RPDEF,s);st.sel=Object.assign({},RPDEF.sel,s.sel||{});
+ const d=new Date();st.date=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');return st}
+function rpSave(){try{const s=Object.assign({},RP.st);delete s.date;localStorage.setItem('ppReport',JSON.stringify(s))}catch(e){}}
+function rpBuild(d,host,pop){RP.doc=d;RP.st=RP.st||rpLoadSt();const st=RP.st,e=rpEsc;
+ const fld=(k,l,ph,ty)=>'<label class="rpF"><span>'+l+'</span><input data-k="'+k+'" type="'+(ty||'text')+'" value="'+e(st[k]==null?'':st[k])+'" placeholder="'+e(ph||'')+'"></label>';
+ host.innerHTML='<div class="rp"><div class="rpL"><h2>⎙ Report / export</h2><p class="rpS">A4 calculation sheets of the current model. Choose what to include; the preview updates as you type and follows changes made in the main window.</p>'+
+ '<fieldset><legend>Sheet details</legend>'+fld('co','Company','Company name')+fld('co2','Address / tel','Address, telephone or email')+fld('proj','Project','Project or job title')+fld('subj','Subject','e.g. Level 2 slab, bay C–D')+
+ '<div class="rp2">'+fld('job','Job no.','')+fld('rev','Revision','')+fld('by','Calc. by','Initials')+fld('chk','Checked','Initials')+fld('start','1st sheet','','number')+fld('pre','Prefix','e.g. S/')+'</div>'+fld('date','Calc. date','','date')+fld('cdate','Check date','','date')+
+ '<p class="rpS" style="margin:4px 0 0">Sheets are numbered automatically from the first sheet number (“3 of 8”). The date defaults to today.</p></fieldset>'+
+ '<fieldset class="rpC"><legend>Contents</legend>'+RPITEMS.map(([k,l])=>'<label><input type="checkbox" data-s="'+k+'"'+(st.sel[k]?' checked':'')+'><span>'+e(l)+'</span></label>').join('')+
+ '<div class="rpA"><a data-a="all">Select all</a><a data-a="none">Clear</a><a data-a="res">Results only</a></div><textarea data-k="notes" placeholder="Notes, assumptions or references to print in the Notes section">'+e(st.notes||'')+'</textarea></fieldset>'+
+ rpDiagFS(st)+'</div>'+
+ '<div class="rpR"><div class="rpTb"><button class="pri" data-b="pdf">⬇ Download PDF</button><button data-b="print">⎙ Print</button><button data-b="ref" title="Re-read the model from the main window">↻ Update</button><span class="rpMsg"></span><span class="sp"></span>'+
+ '<select data-b="zoom" title="Preview zoom"><option value="fit">Fit width</option><option value="0.6">60%</option><option value="0.8">80%</option><option value="1">100%</option><option value="1.4">140%</option></select>'+
+ (pop?'<button data-b="close">✕ Close</button>':'<button data-b="win" title="Try to open the report in its own window">⧉ New window</button><button data-b="close">✕ Close</button>')+'</div><div class="rpPv"></div></div></div>';
+ const q=s=>host.querySelector(s),upd=()=>{rpSave();clearTimeout(RP.t);RP.t=setTimeout(rpRefresh,250)};
+ host.querySelectorAll('[data-k]').forEach(el=>{el.oninput=el.onchange=()=>{const k=el.dataset.k;st[k]=el.type=='checkbox'?el.checked:k=='mono'?el.value=='1':el.value;upd()}});
+ host.querySelectorAll('[data-s]').forEach(el=>{el.onchange=()=>{st.sel[el.dataset.s]=el.checked?1:0;upd()}});
+ host.querySelectorAll('[data-a]').forEach(el=>{el.onclick=()=>{const a=el.dataset.a;RPITEMS.forEach(([k])=>{st.sel[k]=a=='all'?1:a=='none'?0:RPRES.includes(k)?1:0});host.querySelectorAll('[data-s]').forEach(c=>c.checked=!!st.sel[c.dataset.s]);upd()}});
+ q('[data-b=pdf]').onclick=rpDownload;q('[data-b=print]').onclick=rpPrint;q('[data-b=ref]').onclick=()=>{draw();rpRefresh();rpMsg('Updated from the model')};
+ q('[data-b=zoom]').value=RP.zoom;q('[data-b=zoom]').onchange=ev=>{RP.zoom=ev.target.value;rpPaint()};
+ q('[data-b=close]').onclick=()=>{if(pop){try{RP.win.close()}catch(e){}}else rpCloseOv()};
+ if(!pop)q('[data-b=win]').onclick=()=>{rpCloseOv();rpOpen(true)};
+ const pv=q('.rpPv');try{new (d.defaultView||window).ResizeObserver(()=>{if(RP.zoom=='fit'){clearTimeout(RP.rz);RP.rz=setTimeout(rpPaint,120)}}).observe(pv)}catch(err){}
+ rpRefresh()}
+function rpMsg(s){const m=RP.doc&&RP.doc.querySelector('.rpMsg');if(m){m.textContent=s;clearTimeout(RP.mt);RP.mt=setTimeout(()=>{m.textContent=RP.pages.length+' A4 sheet'+(RP.pages.length==1?'':'s')},5000)}}
+function rpRefresh(){if(!RP.doc)return;try{if(dirty||!R)runSolve();RP.pages=rpMake(RP.st)}catch(err){console.error(err);rpMsg('Report error: '+err.message);return}rpPaint();rpMsg(RP.pages.length+' A4 sheet'+(RP.pages.length==1?'':'s'))}
+function rpPaint(){const d=RP.doc;if(!d)return;const pv=d.querySelector('.rpPv');if(!pv)return;const top=pv.scrollTop,fw=Math.max(260,pv.clientWidth-48),w=RP.zoom=='fit'?Math.min(fw,1100):Math.round(793.7*+RP.zoom);
+ pv.innerHTML=RP.pages.map((p,i)=>rpSVG(p,w)+'<div class="pn">Sheet '+((+RP.st.start||1)+i)+'</div>').join('');pv.scrollTop=top}
+function rpQueue(){if(!RP.doc)return;if(RP.win&&RP.win.closed){RP.win=null;RP.doc=null;return}clearTimeout(RP.t);RP.t=setTimeout(rpRefresh,700)}
+function rpName(){const s=RP.st,b=[s.job,s.proj||'Plate Pusher',s.subj].filter(Boolean).join(' ').replace(/[\\/:*?"<>|]+/g,'-').replace(/\s+/g,' ').trim().slice(0,90);return(b||'Plate Pusher report')+' '+(s.date||'')+'.pdf'}
+async function rpDownload(){if(!RP.pages.length)rpRefresh();const s=RP.st,bytes=rpPDF(RP.pages,{title:[s.proj,s.subj].filter(Boolean).join(' – ')||'Plate Pusher report',author:[s.by,s.co].filter(Boolean).join(', '),subject:s.subj||''}),name=rpName();
+ let dl=null;try{dl=await(RP.dlP||Promise.resolve(null))}catch(e){}
+ if(dl){try{await dl.save({filename:name,data:new Blob([bytes],{type:'application/pdf'})});rpMsg('Saved '+name)}catch(e){const c=e&&e.code;rpMsg(c=='declined'?'Download cancelled':c=='rate_limited'?'A save prompt is already open':'Download is not available here – use Print and choose “Save as PDF”')}return}
+ let framed=false;try{framed=window.self!==window.top}catch(e){framed=true}
+ try{const d=RP.doc,url=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'})),a=d.createElement('a');a.href=url;a.download=name;d.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);rpMsg(framed?'If no file appears: this page’s downloads permission is off – turn it on in the artifact’s settings, or open the app in its own tab':'Downloaded '+name)}
+ catch(e){rpMsg('Download blocked – use Print and choose “Save as PDF”')}}
+function rpPrint(){const d=RP.doc;if(!d)return;if(!RP.pages.length)rpRefresh();const f=d.createElement('iframe');f.style.cssText='position:fixed;right:0;bottom:0;width:1px;height:1px;border:0;opacity:0';d.body.appendChild(f);
+ const fd=f.contentDocument;fd.open();fd.write('<!doctype html><html><head><meta charset="utf-8"><title>'+rpEsc(rpName().replace(/\.pdf$/,''))+'</title><style>@page{size:A4 portrait;margin:0}html,body{margin:0;padding:0;background:#fff}svg{display:block;width:210mm;height:296.6mm;break-after:page;page-break-after:always}svg:last-child{break-after:auto;page-break-after:auto}</style></head><body>'+RP.pages.map(p=>rpSVG(p,794)).join('')+'</body></html>');fd.close();
+ setTimeout(()=>{try{f.contentWindow.focus();f.contentWindow.print()}catch(e){rpMsg('Printing is blocked here – use Download PDF')}setTimeout(()=>f.remove(),60000)},300)}
+function rpOverlay(note){let st=document.getElementById('rpCss');if(!st){st=document.createElement('style');st.id='rpCss';st.textContent=RPCSS;document.head.appendChild(st)}
+ let ov=$('rpOv');if(!ov){ov=document.createElement('div');ov.id='rpOv';document.body.appendChild(ov)}ov.hidden=false;RP.host=ov;rpBuild(document,ov,false);if(note)rpMsg(note)}
+function rpCloseOv(){const ov=$('rpOv');if(ov){ov.hidden=true;ov.innerHTML=''}RP.host=null;if(!RP.win)RP.doc=null}
+function rpOpen(fromOv){if(!RP.dlP)RP.dlP=(window.claude&&window.claude.use)?Promise.resolve(window.claude.use('downloads')).catch(()=>null):Promise.resolve(null);
+ if(RP.win&&!RP.win.closed){try{RP.win.focus()}catch(e){}rpRefresh();return}RP.win=null;if(RP.host&&!fromOv){rpRefresh();return}
+ let w=null;try{w=window.open('','ppReport','width='+Math.min(screen.availWidth-60,1280)+',height='+Math.min(screen.availHeight-60,980)+',resizable=yes,scrollbars=yes')}catch(e){}
+ if(!w||!w.document){rpOverlay('Opened here: the browser blocked a new window (this can happen when the page is embedded).');return}
+ const d=w.document;d.head.innerHTML='<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Report – Plate Pusher</title>';const s=d.createElement('style');s.textContent=[...document.querySelectorAll('style')].map(x=>x.id=='rpCss'?'':x.textContent).join('\n')+RPCSS;d.head.appendChild(s);
+ d.documentElement.setAttribute('data-theme',document.documentElement.getAttribute('data-theme')||'dark');d.body.style.cssText='margin:0;display:block;height:100vh;overflow:hidden';
+ RP.win=w;rpBuild(d,d.body,true);w.addEventListener('pagehide',()=>{if(RP.win===w){RP.win=null;if(!RP.host)RP.doc=null}});try{w.focus()}catch(e){}}
+addEventListener('beforeunload',()=>{if(RP.win)try{RP.win.close()}catch(e){}});
 /* ---------- start-up ---------- */
 (function init(){try{const t=localStorage.getItem('pp_theme');if(t)document.documentElement.dataset.theme=t}catch(e){}
  resize();syncTools();let loaded=false;try{const s=localStorage.getItem('pp_model');if(s){const m=JSON.parse(s);if(m&&m.shapes&&m.shapes.length){M=Object.assign(blankModel(),m);M.mesh=Object.assign({h:.5,zones:[]},m.mesh||{});fixIds();loaded=true}}}catch(e){}
