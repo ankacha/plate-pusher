@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark"><head><meta charset="utf-8"><title>Plate Pusher v1.3</title>
+<html lang="en" data-theme="dark"><head><meta charset="utf-8"><title>Plate Pusher v1.4</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 /* ===== Plate Pusher theme: the Frame Pusher v2 neon tokens, surfaces and controls ===== */
@@ -178,14 +178,14 @@ canvas#cv{width:100%;height:100%;display:block;touch-action:none;cursor:crosshai
 .dgrp{display:inline-flex;align-items:center;gap:6px;position:relative}#anSp{position:absolute;bottom:calc(100% + 10px);left:0;z-index:8;display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:8px 12px;background:var(--panel);border:1px solid color-mix(in srgb,var(--acc) 55%,var(--line));border-radius:12px;box-shadow:var(--sh);font-size:12px;white-space:nowrap}#anSp[hidden]{display:none}#anSp input{width:120px}#anSp b{min-width:34px;text-align:right;font-variant-numeric:tabular-nums}#anSp .anR{display:flex;align-items:center;gap:8px}#anSp .anR>span{width:52px;color:var(--mut)}#anK{gap:4px!important}#anK button{padding:1px 0;width:28px;justify-content:center;font-size:12px;border-radius:999px}#anSp::after{content:'';position:absolute;top:100%;left:34px;border:6px solid transparent;border-top-color:color-mix(in srgb,var(--acc) 55%,var(--line))}#anB{padding:2px 9px;font-size:12px;border-radius:999px;min-width:84px;justify-content:center}
 .anN{margin:0;max-width:250px;white-space:normal;color:var(--mut);font-size:11px;line-height:1.4}
 </style></head><body>
-<nav id="top"><span class="tt">▦ Plate Pusher</span><small>v1.3</small>
+<nav id="top"><span class="tt">▦ Plate Pusher</span><small>v1.4</small>
 <button id="bGuide" title="Welcome guide">? Guide</button><button id="bGal" title="Examples gallery">▦ Examples</button><i></i>
 <button id="bMat" title="Stiffness matrix inspector (K)">▤ Stiffness matrix</button><button id="bVer" title="Run the verification suite against closed-form solutions">✓ Verification</button><button id="bMeth" title="Elements, sign conventions and assumptions">ⓘ Method</button><i></i>
 <button id="bRep" title="A4 calculation sheets of the model and results, as a PDF">⎙ Report</button><button id="bIO" title="Save or open a model (Ctrl+S)">⇅ Save / open</button><button id="bNew" title="Clear the canvas">✕ New</button><button id="bKeys" title="Keyboard shortcuts">⌨ Keys</button></nav>
 <aside id="tools"><div class="gh full" style="margin-top:2px">Example plates</div><div class="preRow full"><select id="pre"><option value="">Load example…</option></select><button id="preG" title="Browse the examples gallery">▦</button></div></aside>
 <main><div id="mid"><div id="wrap"><canvas id="cv"></canvas>
 <div id="dock"><div id="dsb" class="card"><button id="dsT"><span>⇕ Display</span><span id="dsA">▾</span></button><div id="dsB"></div></div><div id="lgd" class="card" hidden><div class="lt"><span id="lgN"></span><i id="lgU"></i></div><canvas id="lgC"></canvas><details id="lgDs"><summary>About this result</summary><div id="lgDB"></div></details></div><div id="info" class="card"><button id="infoT" title="Collapse">▾</button><div id="infoB"></div></div></div>
-<div id="ctb"><button id="undo" title="Undo (Ctrl+Z)">↶ Undo</button><button id="redo" title="Redo (Ctrl+Y)">↷ Redo</button><button id="fit" title="Fit view (F)">⤢ Fit</button><button id="theme" title="Light / dark">◐ Theme</button><label title="Snap spacing for drawing">Snap <select id="snap"><option value="0">off</option><option value="0.05">50 mm</option><option value="0.1">100 mm</option><option value="0.25" selected>250 mm</option><option value="0.5">500 mm</option><option value="1">1 m</option></select></label></div>
+<div id="ctb"><button id="undo" title="Undo (Ctrl+Z)">↶ Undo</button><button id="redo" title="Redo (Ctrl+Y)">↷ Redo</button><button id="fit" title="Fit view (F)">⤢ Fit</button><button id="theme" title="Light / dark">◐ Theme</button><label title="Snap spacing for drawing">Snap <select id="snap"><option value="0">off</option><option value="0.001">1 mm</option><option value="0.002">2 mm</option><option value="0.005">5 mm</option><option value="0.01">10 mm</option><option value="0.025">25 mm</option><option value="0.05">50 mm</option><option value="0.1">100 mm</option><option value="0.25" selected>250 mm</option><option value="0.5">500 mm</option><option value="1">1 m</option></select></label></div>
 <div id="coord"></div><div id="tchip" class="off"></div><div id="pop" class="card" hidden></div>
 <div id="hm" class="card" hidden><div id="hmH"><b>▦ Stiffness matrix K</b><span><button id="hmP" title="Pop the matrix out into its own window">⧉</button><button id="hmM" title="Maximise over the canvas">⤢</button><button id="hmC0" title="Collapse or expand">▾</button><button id="hmX" title="Close (M)">✕</button></span></div><div id="hmB"></div></div>
 </div><aside id="side" hidden><div id="sideH"><b id="sideT">Section cut</b><span><button id="sideC" title="Collapse or expand">»</button><button id="sideX" title="Close">✕</button></span></div><div id="sideB"></div></aside></div>
@@ -268,12 +268,12 @@ function regionPts(M,ld){if(ld.sid!=null){const s=M.shapes.find(o=>o.id===ld.sid
 
 /* ---------- mesher: rectilinear grid through the model's straight edges, cells kept by centroid, boundary nodes
    projected onto curved or sloping edges (reverted where that would spoil an element) ---------- */
-function buildMesh(M){const h=Math.max(.02,M.mesh.h),SH=M.shapes.map(s=>({s,P:shapePts(s)})),plates=SH.filter(o=>o.s.kind=='plate');
+function buildMesh(M){const h=Math.max(.0005,M.mesh.h),SH=M.shapes.map(s=>({s,P:shapePts(s)})),plates=SH.filter(o=>o.s.kind=='plate');
  const mesh={nodes:[],els:[],h,warn:[]};if(!plates.length)return mesh;
  let x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infinity;plates.forEach(o=>o.P.forEach(([x,y])=>{x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y)}));
  const span=Math.max(x1-x0,y1-y0),eps=1e-9*span,CX=[],CY=[],add=(A,v,p)=>A.push([v,p]);
  add(CX,x0,3);add(CX,x1,3);add(CY,y0,3);add(CY,y1,3);
- const ZN=(M.mesh.zones||[]).filter(z=>z.h>0&&z.pts);ZN.forEach(z=>{const P=z.pts;add(CX,Math.min(...P.map(p=>p[0])),2);add(CX,Math.max(...P.map(p=>p[0])),2);add(CY,Math.min(...P.map(p=>p[1])),2);add(CY,Math.max(...P.map(p=>p[1])),2)});
+ const ZN=(M.mesh.zones||[]).filter(z=>z.h>0&&z.pts).concat(autoZones(M,h));mesh.auto=ZN.filter(z=>z.auto).length;ZN.forEach(z=>{const P=z.pts;add(CX,Math.min(...P.map(p=>p[0])),2);add(CX,Math.max(...P.map(p=>p[0])),2);add(CY,Math.min(...P.map(p=>p[1])),2);add(CY,Math.max(...P.map(p=>p[1])),2)});
  SH.forEach(({s,P})=>{let a=Infinity,b=-Infinity,c=Infinity,d=-Infinity;P.forEach(([x,y])=>{a=Math.min(a,x);b=Math.max(b,x);c=Math.min(c,y);d=Math.max(d,y)});add(CX,a,2);add(CX,b,2);add(CY,c,2);add(CY,d,2);
   if(!s.circ)for(let i=0;i<P.length;i++){const p=P[i],q=P[(i+1)%P.length];if(Math.abs(p[0]-q[0])<eps)add(CX,p[0],3);if(Math.abs(p[1]-q[1])<eps)add(CY,p[1],3)}});
  const inBox=(x,y)=>x>x0-eps&&x<x1+eps&&y>y0-eps&&y<y1+eps;
@@ -284,9 +284,14 @@ function buildMesh(M){const h=Math.max(.02,M.mesh.h),SH=M.shapes.map(s=>({s,P:sh
  const merge=A=>{A.sort((a,b)=>a[0]-b[0]);const out=[];let cl=[];const flush=()=>{if(!cl.length)return;cl.sort((a,b)=>b[1]-a[1]);out.push(cl[0][0]);cl=[]};
   for(const a of A){if(cl.length&&a[0]-cl[0][0]>.2*h)flush();cl.push(a)}flush();return out.filter((v,i,o)=>!i||v-o[i-1]>eps)};
  const gx=merge(CX).filter(v=>v>=x0-eps&&v<=x1+eps),gy=merge(CY).filter(v=>v>=y0-eps&&v<=y1+eps),hz=(lo,hi,ax)=>{let hh=h;ZN.forEach(z=>{const c=z.pts.map(p=>p[ax]),a=Math.min(...c),b=Math.max(...c);if(lo>=a-eps&&hi<=b+eps)hh=Math.min(hh,z.h)});return hh},
-  sub=(g,ax)=>{const o=[g[0]];for(let i=1;i<g.length;i++){const L=g[i]-g[i-1],n=Math.max(1,Math.round(L/hz(g[i-1],g[i],ax)));for(let k=1;k<=n;k++)o.push(g[i-1]+L*k/n)}return o};
+  gr=M.mesh.gr>1?Math.min(3,M.mesh.gr):0,
+  /* v1.4 graded refinement: the element size grows by the ratio gr per element away from each zone, h(d) = hz + (gr − 1)·d */
+  hAt=(v,ax)=>{let hh=h;ZN.forEach(z=>{const c=z.pts.map(p=>p[ax]),a=Math.min(...c),b=Math.max(...c),d=v<a?a-v:v>b?v-b:0;hh=Math.min(hh,d<=eps?z.h:z.h+(gr-1)*d)});return hh},
+  sub=(g,ax)=>{const o=[g[0]];for(let i=1;i<g.length;i++){const a=g[i-1],L=g[i]-a;if(!gr){const n=Math.max(1,Math.round(L/hz(a,g[i],ax)));for(let k=1;k<=n;k++)o.push(a+L*k/n);continue}
+   const K=Math.max(48,Math.min(4000,Math.ceil(6*L/Math.min(hAt(a+L*1e-6,ax),hAt(g[i]-L*1e-6,ax),h)))),cum=new Float64Array(K+1);for(let k=1;k<=K;k++)cum[k]=cum[k-1]+L/K/hAt(a+L*(k-.5)/K,ax);
+   const n=Math.max(1,Math.round(cum[K]));let j=1;for(let k=1;k<n;k++){const t=cum[K]*k/n;while(j<K&&cum[j]<t)j++;const f=(t-cum[j-1])/((cum[j]-cum[j-1])||1);o.push(a+L*(j-1+f)/K)}o.push(g[i])}return o};
  const X=sub(gx,0),Y=sub(gy,1),nx=X.length-1,ny=Y.length-1;
- if(nx*ny>40000){mesh.warn.push('Mesh too fine ('+nx*ny+' cells): increase the element size.');return mesh}
+ if(nx*ny>60000){mesh.warn.push('Mesh too fine ('+(nx*ny).toLocaleString('en-GB')+' grid cells; the limit is 60 000): increase the element size, use fewer refinement zones or lower the refinement at openings.');return mesh}
  const act=new Uint8Array(nx*ny);for(let j=0;j<ny;j++)for(let i=0;i<nx;i++)if(inDomain(M,(X[i]+X[i+1])/2,(Y[j]+Y[j+1])/2))act[j*nx+i]=1;
  const nid=new Int32Array((nx+1)*(ny+1)).fill(-1),N=mesh.nodes,gid=(i,j)=>j*(nx+1)+i;
  const node=(i,j)=>{const k=gid(i,j);if(nid[k]<0){nid[k]=N.length;N.push({x:X[i],y:Y[j],gi:i,gj:j})}return nid[k]};
@@ -315,6 +320,16 @@ function meshIndex(mesh){const N=mesh.nodes;let x0=Infinity,x1=-Infinity,y0=Infi
  mesh.bb=mesh.els.map((e,k)=>{let a=Infinity,b=-Infinity,c=Infinity,d=-Infinity;e.forEach(n=>{a=Math.min(a,N[n].x);b=Math.max(b,N[n].x);c=Math.min(c,N[n].y);d=Math.max(d,N[n].y)});
   for(let j=Math.floor((c-y0)/bs);j<=Math.floor((d-y0)/bs);j++)for(let i=Math.floor((a-x0)/bs);i<=Math.floor((b-x0)/bs);i++)if(i>=0&&j>=0&&i<bx&&j<by)B[j*bx+i].push(k);return[a,b,c,d]});
  mesh.idx={x0,y0,bs,bx,by,B};mesh.ext=[x0,x1,y0,y1]}
+/* v1.4: automatic refinement at openings, rigid zones and bolt holes. ref = elements round each opening (0 = off).
+   Each opening gets a square zone one radius larger than itself with h = perimeter / ref; grading spreads it smoothly. */
+function polyCen(P){let a=0,cx=0,cy=0;for(let i=0,j=P.length-1;i<P.length;j=i++){const f=P[j][0]*P[i][1]-P[i][0]*P[j][1];a+=f;cx+=(P[j][0]+P[i][0])*f;cy+=(P[j][1]+P[i][1])*f}if(Math.abs(a)<1e-18){let x=0,y=0;P.forEach(p=>{x+=p[0];y+=p[1]});return[x/P.length,y/P.length]}return[cx/(3*a),cy/(3*a)]}
+function polyPerim(P){let s=0;for(let i=0;i<P.length;i++)s+=dist(P[i],P[(i+1)%P.length]);return s}
+function autoZones(M,h){const nr=+M.mesh.ref||0;if(!(nr>0))return[];const out=[],did=new Set(),add=(P,key)=>{if(did.has(key))return;did.add(key);let x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infinity;P.forEach(([x,y])=>{x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y)});
+  const hz=Math.max(h/64,Math.min(h,polyPerim(P)/nr));if(hz>=h*.999)return;const m=Math.max(.5*Math.max(x1-x0,y1-y0),2*hz);out.push({auto:1,h:hz,pts:[[x0-m,y0-m],[x1+m,y0-m],[x1+m,y1+m],[x0-m,y1+m]]})};
+ M.shapes.forEach(s=>{if(s.kind=='hole')add(shapePts(s),'s'+s.id)});(M.rigs||[]).forEach(r=>{const P=rigPts(M,r);if(P)add(P,r.sid!=null?'s'+r.sid:'r'+r.id)});return out}
+const dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
+function rigPts(M,r){if(r.sid!=null){const s=M.shapes.find(o=>o.id===r.sid);return s?shapePts(s):null}return r.circ||r.pts?shapePts(r):null}
+function rigRef(M,r){if(r.sid!=null){const s=M.shapes.find(o=>o.id===r.sid);if(!s)return null;return s.circ?s.c.slice():polyCen(shapePts(s))}if(r.circ)return r.c.slice();return r.pts?polyCen(r.pts):null}
 /* locate (x, y): element and natural coordinates, or null */
 function locate(mesh,x,y){const I=mesh.idx;if(!I)return null;const i=Math.floor((x-I.x0)/I.bs),j=Math.floor((y-I.y0)/I.bs);if(i<0||j<0||i>=I.bx||j>=I.by)return null;
  const tol=1e-9*(I.bs+1);for(const k of I.B[j*I.bx+i]){const b=mesh.bb[k];if(x<b[0]-tol||x>b[1]+tol||y<b[2]-tol||y>b[3]+tol)continue;const q=invMap(mesh,k,x,y);if(q)return{e:k,r:q[0],s:q[1]}}return null}
@@ -371,13 +386,19 @@ function lineSample(mesh,a,b,f){const L=Math.hypot(b[0]-a[0],b[1]-a[1]);if(L<=0)
  return lost/L}
 function analyse(M,opt){opt=opt||{};const T0=(typeof performance!='undefined'?performance:Date).now(),mesh=opt.mesh||buildMesh(M),R={mesh,warn:[...mesh.warn],info:[]};
  const N=mesh.nodes,nn=N.length,ne=mesh.els.length;if(!ne){R.empty=true;return R}
- const mat={E:M.mat.E,nu:M.mat.nu,t:M.mat.t};R.mat=mat;
+ const mat={E:M.mat.E,nu:M.mat.nu,t:M.mat.t,fy:M.mat.fy||0};R.mat=mat;
  const XY=mesh.els.map(e=>[e.map(n=>N[n].x),e.map(n=>N[n].y)]);
  /* identical element shapes (the usual case on a grid) share their matrices */
  const cache=new Map(),sc=1e9/Math.max(mesh.h,1e-6);R.km=[];R.kb=[];
  XY.forEach(([X,Y])=>{const key=X.map(x=>Math.round((x-X[0])*sc)).join(',')+'|'+Y.map(y=>Math.round((y-Y[0])*sc)).join(',');let c=cache.get(key);if(!c){c=[kMem(X,Y,mat),kPlate(X,Y,mat)];cache.set(key,c)}R.km.push(c[0]);R.kb.push(c[1])});R.nShapes=cache.size;
  /* DOF flags */
- const fixB=new Uint8Array(3*nn),fixM=new Uint8Array(2*nn),sprB=new Float64Array(3*nn),sprM=new Float64Array(2*nn),FB=new Float64Array(3*nn),FM=new Float64Array(2*nn),supOf=new Map();
+ const RGS=M.rigs||[],nRg=RGS.length,nB=3*nn+3*nRg,nM=2*nn+3*nRg;
+ const fixB=new Uint8Array(nB),fixM=new Uint8Array(nM),sprB=new Float64Array(nB),sprM=new Float64Array(nM),FB=new Float64Array(nB),FM=new Float64Array(nM),supOf=new Map();
+ /* mesh boundary nodes on (or within 0.75 h of) an outline: the edge of an opening */
+ const ncnt=new Uint8Array(nn);mesh.els.forEach(e=>e.forEach(n=>ncnt[n]++));
+ const ringNodes=P=>{let x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infinity;P.forEach(([x,y])=>{x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y)});const tol=.75*mesh.h,out=[];
+  for(let i=0;i<nn;i++){if(ncnt[i]>=4)continue;const p=N[i];if(p.x<x0-tol||p.x>x1+tol||p.y<y0-tol||p.y>y1+tol)continue;let d=Infinity;for(let k=0;k<P.length;k++){const a=P[k],b=P[(k+1)%P.length];d=Math.min(d,segClosest(p.x,p.y,a[0],a[1],b[0],b[1]).d)}if(d<=tol)out.push(i)}return out};
+ R.ringNodes=ringNodes;
  R.supInfo=[];
  (M.sups||[]).forEach((s,si)=>{const P=SUPP[s.pre]||{c:{}},c=Object.assign({},P.c,s.c||{});
   if(s.type=='area'){const Pg=regionPts(M,s);if(!Pg||!(s.k>0))return;let A=0;mesh.els.forEach((e,k)=>{for(const[r,q]of GP16){const Nn=shp(r,q);let x=0,y=0;for(let i=0;i<4;i++){x+=Nn[i]*XY[k][0][i];y+=Nn[i]*XY[k][1][i]}if(!pip(x,y,Pg))continue;const w=jac(XY[k][0],XY[k][1],r,q).det/4;A+=w;for(let i=0;i<4;i++)sprB[3*e[i]]+=s.k*Nn[i]*w}});R.supInfo[si]={nodes:[],area:A};return}
@@ -400,36 +421,63 @@ function analyse(M,opt){opt=opt||{};const T0=(typeof performance!='undefined'?pe
   else if(L.kind=='pt'){const q=locate(mesh,L.p[0],L.p[1]);if(!q)lost=1;else{const Nn=shp(q.r,q.s),e=mesh.els[q.e];for(let i=0;i<4;i++)FB[3*e[i]]+=L.P*Nn[i]}tot=lost?0:L.P;R.loadInfo[li]={tot}}
   else if(L.kind=='force'){const q=locate(mesh,L.p[0],L.p[1]);if(!q)lost=1;else{const Nn=shp(q.r,q.s),e=mesh.els[q.e];for(let i=0;i<4;i++){FM[2*e[i]]+=L.fx*Nn[i];FM[2*e[i]+1]+=L.fy*Nn[i]}}R.loadInfo[li]={tx:lost?0:L.fx,ty:lost?0:L.fy}}
   else if(L.kind=='traction'){const len=Math.hypot(L.pts[1][0]-L.pts[0][0],L.pts[1][1]-L.pts[0][1]);lost=lineSample(mesh,L.pts[0],L.pts[1],(q,ds)=>{const Nn=shp(q.r,q.s),e=mesh.els[q.e];for(let i=0;i<4;i++){FM[2*e[i]]+=L.qx*Nn[i]*ds;FM[2*e[i]+1]+=L.qy*Nn[i]*ds}});R.loadInfo[li]={tx:L.qx*len*(1-lost),ty:L.qy*len*(1-lost)}}
-  if(lost>.005)lostAny.push('Load '+(li+1)+(lost>.995?' is off the plate and is ignored.':': '+(lost*100).toFixed(0)+'% lies off the plate and is ignored.'))});
+  else if(L.kind=='bolt'){const s=M.shapes.find(o=>o.id===L.sid),P=s?shapePts(s):null,ids=P?ringNodes(P):[];R.loadInfo[li]={tx:0,ty:0,tot:0,n:ids.length};
+   if(ids.length<3)lost=1;else{const c=s.circ?s.c:polyCen(P),A=ids.map(i=>[Math.atan2(N[i].y-c[1],N[i].x-c[0]),i]).sort((a,b)=>a[0]-b[0]),k=A.length,tr=new Float64Array(k);
+    for(let j=0;j<k;j++){const p=N[A[j][1]],q=N[A[(j+1)%k][1]],o=N[A[(j+k-1)%k][1]];tr[j]=(Math.hypot(q.x-p.x,q.y-p.y)+Math.hypot(p.x-o.x,p.y-o.y))/2}
+    const fx=L.fx||0,fy=L.fy||0,F=Math.hypot(fx,fy);
+    if(F>0){/* bearing: radial pressure ∝ cos θ on the half of the hole the bolt is pushed against, scaled to the bolt force, any tiny sideways remainder spread the same way */
+     const ux=fx/F,uy=fy/F,wt=new Float64Array(k),er=[];let sx=0,sy=0,sw=0;for(let j=0;j<k;j++){const p=N[A[j][1]],dx=p.x-c[0],dy=p.y-c[1],r=Math.hypot(dx,dy)||1,ex=dx/r,ey=dy/r;er.push([ex,ey]);const w=Math.max(0,ex*ux+ey*uy)*tr[j];wt[j]=w;sx+=w*ex;sy+=w*ey;sw+=w}
+     const sc=F/((sx*ux+sy*uy)||1),rx=fx-sc*sx,ry=fy-sc*sy;for(let j=0;j<k;j++){if(!wt[j])continue;const i=A[j][1],a=wt[j]/sw;FM[2*i]+=sc*wt[j]*er[j][0]+rx*a;FM[2*i+1]+=sc*wt[j]*er[j][1]+ry*a}R.loadInfo[li].tx=fx;R.loadInfo[li].ty=fy}
+    if(L.P){let st=0;tr.forEach(v=>st+=v);for(let j=0;j<k;j++)FB[3*A[j][1]]+=L.P*tr[j]/st;R.loadInfo[li].tot=L.P}}}
+  if(lost>.005)lostAny.push('Load '+(li+1)+(L.kind=='bolt'&&lost>.995?' (bolt) is not on the edge of an opening and is ignored.':lost>.995?' is off the plate and is ignored.':': '+(lost*100).toFixed(0)+'% lies off the plate and is ignored.'))});
  R.warn.push(...lostAny);
+ /* v1.4 rigid zones. Every mesh node of the zone (the edge of an opening, or the nodes inside a drawn region) follows a rigid-body motion of
+    a reference point with three master DOFs per system: in plane u, v, θz (u_s = u − θ·dy, v_s = v + θ·dx); out of plane w, βx, βy
+    (w_s = w − βx·dx − βy·dy, β_s = β). The slave DOFs are eliminated exactly (no penalty), so loads and restraints act at the reference point. */
+ const slB=new Map(),slM=new Map(),taken=new Set();R.rigInfo=[];
+ RGS.forEach((r,j)=>{const P=rigPts(M,r),ref=rigRef(M,r),mB=3*nn+3*j,mM=2*nn+3*j,I={nodes:[],ref,mB,mM};R.rigInfo[j]=I;
+  let ids=[];if(P&&ref){if(r.sid!=null)ids=ringNodes(P);else{const tol=Math.max(1e-9,.02*mesh.h);for(let i=0;i<nn;i++){const p=N[i];if(pip(p.x,p.y,P)){ids.push(i);continue}let d=Infinity;for(let k=0;k<P.length;k++){const a=P[k],b=P[(k+1)%P.length];d=Math.min(d,segClosest(p.x,p.y,a[0],a[1],b[0],b[1]).d)}if(d<=tol)ids.push(i)}}}
+  const sh=ids.filter(i=>taken.has(i));if(sh.length)R.info.push('Rigid zone '+(j+1)+': '+sh.length+' node'+(sh.length==1?' is':'s are')+' already in another rigid zone and stay with that one.');ids=ids.filter(i=>!taken.has(i));ids.forEach(i=>taken.add(i));I.nodes=ids;
+  if(!ids.length){if(P)R.warn.push('Rigid zone '+(j+1)+' does not touch the plate mesh and is ignored.');for(let c=0;c<3;c++){fixB[mB+c]=1;fixM[mM+c]=1}return}
+  let nsup=0;ids.forEach(i=>{const dx=N[i].x-ref[0],dy=N[i].y-ref[1];
+   if(!fixB[3*i])slB.set(3*i,[[mB,1],[mB+1,-dx],[mB+2,-dy]]);else nsup++;if(!fixB[3*i+1])slB.set(3*i+1,[[mB+1,1]]);if(!fixB[3*i+2])slB.set(3*i+2,[[mB+2,1]]);
+   if(!fixM[2*i])slM.set(2*i,[[mM,1],[mM+2,-dy]]);else nsup++;if(!fixM[2*i+1])slM.set(2*i+1,[[mM+1,1],[mM+2,dx]])});
+  if(nsup)R.info.push('Rigid zone '+(j+1)+': a support on one of its nodes takes precedence over the rigid link there.');
+  if(ids.length<2)fixM[mM+2]=1;
+  FM[mM]+=+r.fx||0;FM[mM+1]+=+r.fy||0;FM[mM+2]+=+r.mz||0;FB[mB]+=+r.P||0;FB[mB+1]-=+r.tx||0;FB[mB+2]-=+r.ty||0;
+  const f=r.fix||{};if(f.u)fixM[mM]=1;if(f.v)fixM[mM+1]=1;if(f.rz)fixM[mM+2]=1;if(f.w)fixB[mB]=1;if(f.rx)fixB[mB+1]=1;if(f.ry)fixB[mB+2]=1});
  /* assemble and solve each system */
  const ord=rcmNodes(mesh);R.ord=ord;
- R.B=solveSys(mesh,3,R.kb,fixB,sprB,FB,ord,opt);R.Mm=solveSys(mesh,2,R.km,fixM,sprM,FM,ord,opt);R.supOf=supOf;
+ R.B=solveSys(mesh,3,R.kb,fixB,sprB,FB,ord,opt,slB);R.Mm=solveSys(mesh,2,R.km,fixM,sprM,FM,ord,opt,slM);R.supOf=supOf;
  R.hasB=FB.some(v=>v!==0);R.hasM=FM.some(v=>v!==0);
- if(R.hasB&&!R.B.ok)R.warn.push('Out-of-plane: the plate is not adequately supported (mechanism at '+R.B.mech.slice(0,3).map(d=>dofLab(d,3)).join(', ')+(R.B.mech.length>3?' …':'')+'). Add supports.');
- if(R.hasM&&!R.Mm.ok)R.warn.push('In-plane: the plate is not adequately restrained in its own plane (mechanism at '+R.Mm.mech.slice(0,3).map(d=>dofLab(d,2)).join(', ')+(R.Mm.mech.length>3?' …':'')+'). Add in-plane supports.');
+ if(R.hasB&&!R.B.ok)R.warn.push('Out-of-plane: the plate is not adequately supported (mechanism at '+R.B.mech.slice(0,3).map(d=>dofLab(d,3,nn)).join(', ')+(R.B.mech.length>3?' …':'')+'). Add supports.');
+ if(R.hasM&&!R.Mm.ok)R.warn.push('In-plane: the plate is not adequately restrained in its own plane (mechanism at '+R.Mm.mech.slice(0,3).map(d=>dofLab(d,2,nn)).join(', ')+(R.Mm.mech.length>3?' …':'')+'). Add in-plane supports.');
  recover(R,XY);R.ms=((typeof performance!='undefined'?performance:Date).now()-T0);return R}
 const GP16=(()=>{const g=[-.75,-.25,.25,.75],o=[];for(const s of g)for(const r of g)o.push([r,s]);return o})();
 function isConvexInside(xy,P){/* centre and edge midpoints also inside, so the element is (nearly) wholly loaded */const X=xy[0],Y=xy[1];for(const[r,s]of[[0,0],[0,-1],[1,0],[0,1],[-1,0]]){const N=shp(r,s);let x=0,y=0;for(let i=0;i<4;i++){x+=N[i]*X[i];y+=N[i]*Y[i]}if(!pip(x,y,P))return false}return true}
-const dofLab=(d,nd)=>'node '+(Math.floor(d/nd)+1)+' '+(nd==3?['w','βx','βy']:['u','v'])[d%nd];
-function solveSys(mesh,nd,KE,fix,spr,F,ord,opt){const nn=mesh.nodes.length,n=nd*nn,S={nd,n,fix,spr,F,ok:true,mech:[]};
- /* reordered free numbering: perm[dof] = position */
- const pos=new Int32Array(n).fill(-1),free=[];ord.forEach(i=>{for(let c=0;c<nd;c++){const d=nd*i+c;if(!fix[d]){pos[d]=free.length;free.push(d)}}});S.free=free;S.pos=pos;
- const nf=free.length;S.nf=nf;const u=new Float64Array(n);S.u=u;if(!nf){S.R=reac(mesh,nd,KE,u,F,spr,fix);return S}
- const rows=Array.from({length:nf},()=>new Map());
+const dofLab=(d,nd,nn)=>nn!=null&&d>=nd*nn?'rigid zone '+(Math.floor((d-nd*nn)/3)+1)+' '+(nd==3?['w','βx','βy']:['u','v','θz'])[(d-nd*nn)%3]:'node '+(Math.floor(d/nd)+1)+' '+(nd==3?['w','βx','βy']:['u','v'])[d%nd];
+/* sums of applied loads F and reactions R over a solved system, mesh nodes plus rigid-zone reference points (force components only) */
+function sysSum(S_){const nd=S_.nd,nm=S_.nm!=null?S_.nm:S_.F.length,o={F:{z:0,x:0,y:0},R:{z:0,x:0,y:0}};for(let d=0;d<S_.F.length;d++){const c=d<nm?d%nd:(d-nm)%3,k=nd==3?(c==0?'z':''):c==0?'x':c==1?'y':'';if(!k)continue;o.F[k]+=S_.F[d];o.R[k]+=S_.R[d]||0}return o}
+function solveSys(mesh,nd,KE,fix,spr,F,ord,opt,SL){const nn=mesh.nodes.length,nm=nd*nn,n=fix.length,S={nd,n,nm,fix,spr,F,ok:true,mech:[]};SL=SL||new Map();S.sl=SL;
+ /* reordered free numbering: perm[dof] = position; slave DOFs of rigid zones are not free, their masters (after the mesh) are */
+ const pos=new Int32Array(n).fill(-1),free=[];ord.forEach(i=>{for(let c=0;c<nd;c++){const d=nd*i+c;if(!fix[d]&&!SL.has(d)){pos[d]=free.length;free.push(d)}}});for(let d=nm;d<n;d++)if(!fix[d]){pos[d]=free.length;free.push(d)}S.free=free;S.pos=pos;
+ const nf=free.length;S.nf=nf;const u=new Float64Array(n);S.u=u;if(!nf){S.R=reac(mesh,nd,KE,u,F,spr,fix,SL);return S}
+ const rows=Array.from({length:nf},()=>new Map()),map=d=>{const s=SL.get(d);if(s){const o=[];s.forEach(([m,c])=>{if(pos[m]>=0&&c)o.push([pos[m],c])});return o}return pos[d]>=0?[[pos[d],1]]:[]};
  mesh.els.forEach((e,k)=>{const K=KE[k].K,dd=[];e.forEach(i=>{for(let c=0;c<nd;c++)dd.push(nd*i+c)});
-  for(let a=0;a<dd.length;a++){const pa=pos[dd[a]];if(pa<0)continue;const Ka=K[a],ra=rows[pa];for(let b=0;b<dd.length;b++){const pb=pos[dd[b]];if(pb<0||pb>pa)continue;const v=Ka[b];if(v)ra.set(pb,(ra.get(pb)||0)+v)}}});
- for(let d=0;d<n;d++)if(spr[d]&&pos[d]>=0){const p=pos[d];rows[p].set(p,(rows[p].get(p)||0)+spr[d])}
- const Ff=new Float64Array(nf);free.forEach((d,i)=>Ff[i]=F[d]);S.rows=rows;
+  if(!SL.size||!dd.some(d=>SL.has(d))){for(let a=0;a<dd.length;a++){const pa=pos[dd[a]];if(pa<0)continue;const Ka=K[a],ra=rows[pa];for(let b=0;b<dd.length;b++){const pb=pos[dd[b]];if(pb<0||pb>pa)continue;const v=Ka[b];if(v)ra.set(pb,(ra.get(pb)||0)+v)}}return}
+  const mp=dd.map(map);for(let a=0;a<dd.length;a++){const Ka=K[a];for(const[pa,ca]of mp[a]){const ra=rows[pa];for(let b=0;b<dd.length;b++){const v=Ka[b];if(!v)continue;for(const[pb,cb]of mp[b])if(pb<=pa)ra.set(pb,(ra.get(pb)||0)+ca*v*cb)}}}});
+ for(let d=0;d<n;d++)if(spr[d]){const mp=map(d);for(const[pa,ca]of mp)for(const[pb,cb]of mp)if(pb<=pa)rows[pa].set(pb,(rows[pa].get(pb)||0)+ca*spr[d]*cb)}
+ const Ff=new Float64Array(nf);free.forEach((d,i)=>Ff[i]=F[d]);SL.forEach((s,d)=>{if(F[d])s.forEach(([m,c])=>{if(pos[m]>=0)Ff[pos[m]]+=c*F[d]})});S.rows=rows;
  if(!opt.always&&!Ff.some(v=>v!==0)){S.idle=true;S.R=new Float64Array(n);return S}
  /* a DOF with no stiffness at all (e.g. rotation with zero area) */
  for(let i=0;i<nf;i++)if(!rows[i].has(i))rows[i].set(i,0);
  const sol=skySolve(nf,rows,Ff);S.sky=sol;S.prof=sol.prof;
- if(sol.piv.length){S.ok=false;S.mech=sol.piv.map(i=>free[i]);u.fill(0)}else free.forEach((d,i)=>u[d]=sol.x[i]);
- S.R=reac(mesh,nd,KE,u,F,spr,fix);return S}
-function reac(mesh,nd,KE,u,F,spr,fix){const n=u.length,Ku=new Float64Array(n);mesh.els.forEach((e,k)=>{const K=KE[k].K,dd=[];e.forEach(i=>{for(let c=0;c<nd;c++)dd.push(nd*i+c)});
+ if(sol.piv.length){S.ok=false;S.mech=sol.piv.map(i=>free[i]);u.fill(0)}else{free.forEach((d,i)=>u[d]=sol.x[i]);SL.forEach((s,d)=>{let v=0;s.forEach(([m,c])=>v+=c*u[m]);u[d]=v})}
+ S.R=reac(mesh,nd,KE,u,F,spr,fix,SL);return S}
+function reac(mesh,nd,KE,u,F,spr,fix,SL){const n=u.length,nm=nd*mesh.nodes.length,Ku=new Float64Array(n);mesh.els.forEach((e,k)=>{const K=KE[k].K,dd=[];e.forEach(i=>{for(let c=0;c<nd;c++)dd.push(nd*i+c)});
  for(let a=0;a<dd.length;a++){let s=0;for(let b=0;b<dd.length;b++)s+=K[a][b]*u[dd[b]];Ku[dd[a]]+=s}});
- const R=new Float64Array(n);for(let d=0;d<n;d++)if(fix[d]||spr[d])R[d]=Ku[d]-F[d];/* force the support applies to the plate (ΣF + ΣR = 0) */
+ const R=new Float64Array(n);for(let d=0;d<nm;d++)if(fix[d]||spr[d])R[d]=SL&&SL.has(d)?-spr[d]*u[d]:Ku[d]-F[d];/* force the support applies to the plate (ΣF + ΣR = 0) */
+ if(SL&&SL.size){/* a restrained rigid-zone reference point: R = Σ c·(K u + k u − F) over its nodes − F at the point */const acc=new Float64Array(n);SL.forEach((s,d)=>{const lam=Ku[d]+spr[d]*u[d]-F[d];s.forEach(([m,c])=>acc[m]+=c*lam)});for(let d=nm;d<n;d++)if(fix[d])R[d]=acc[d]-F[d]}
  return R}
 
 /* ---------- recovery: Gauss → corner extrapolation, nodal averaging, derived fields ---------- */
@@ -444,7 +492,12 @@ const FLD={
  ux:{s:'M',lab:'Displacement ux',u:'mm',f:1e3,sym:'ux'},uy:{s:'M',lab:'Displacement uy',u:'mm',f:1e3,sym:'uy'},um:{s:'M',lab:'Displacement |u|',u:'mm',f:1e3,sym:'|u|'},
  Nx:{s:'M',lab:'Membrane force Nx',u:'kN/m',f:1,sym:'Nx'},Ny:{s:'M',lab:'Membrane force Ny',u:'kN/m',f:1,sym:'Ny'},Nxy:{s:'M',lab:'Membrane shear Nxy',u:'kN/m',f:1,sym:'Nxy'},
  sx:{s:'M',lab:'Stress σx',u:'MPa',f:1e-3,sym:'σx'},sy:{s:'M',lab:'Stress σy',u:'MPa',f:1e-3,sym:'σy'},txy:{s:'M',lab:'Shear stress τxy',u:'MPa',f:1e-3,sym:'τxy'},
- s1:{s:'M',lab:'Principal stress σ1',u:'MPa',f:1e-3,sym:'σ1'},s2:{s:'M',lab:'Principal stress σ2',u:'MPa',f:1e-3,sym:'σ2'},svm:{s:'M',lab:'Von Mises stress',u:'MPa',f:1e-3,sym:'σvm'},tmax:{s:'M',lab:'Max shear stress τmax',u:'MPa',f:1e-3,sym:'τmax'}};
+ s1:{s:'M',lab:'Principal stress σ1',u:'MPa',f:1e-3,sym:'σ1'},s2:{s:'M',lab:'Principal stress σ2',u:'MPa',f:1e-3,sym:'σ2'},svm:{s:'M',lab:'Von Mises stress',u:'MPa',f:1e-3,sym:'σvm'},tmax:{s:'M',lab:'Max shear stress τmax',u:'MPa',f:1e-3,sym:'τmax'},
+ ut:{s:'M',lab:'Utilisation σvm / fy',u:'%',f:100,sym:'σvm/fy',fy:1},
+ svs:{s:'B',lab:'Surface von Mises (bending + membrane)',u:'MPa',f:1e-3,sym:'σvm,s'},uts:{s:'B',lab:'Surface utilisation σvm,s / fy',u:'%',f:100,sym:'σvm,s/fy',fy:1}};
+/* von Mises on the worse face: σ = N/t ± 6M/t² (bending and membrane stresses add on one face and subtract on the other) */
+function surfVM(Nx,Ny,Nxy,Mx,My,Mxy,t){let m=0;for(const s of[1,-1]){const a=Nx/t+s*6*Mx/(t*t),b=Ny/t+s*6*My/(t*t),c=Nxy/t+s*6*Mxy/(t*t);m=Math.max(m,Math.sqrt(a*a-a*b+b*b+3*c*c))}return m}
+const fldOn=k=>!!FLD[k]&&(!FLD[k].fy||(typeof M!='undefined'&&M&&M.mat&&M.mat.fy>0));
 function woodArmer(mx,my,mxy){const a=Math.abs(mxy);let xb=mx+a,yb=my+a;if(xb<0){xb=0;yb=mx!==0?my+Math.abs(mxy*mxy/mx):my+a}if(yb<0){yb=0;xb=my!==0?mx+Math.abs(mxy*mxy/my):mx+a}if(xb<0)xb=0;if(yb<0)yb=0;
  let xt=mx-a,yt=my-a;if(xt>0){xt=0;yt=mx!==0?my-Math.abs(mxy*mxy/mx):my-a}if(yt>0){yt=0;xt=my!==0?mx-Math.abs(mxy*mxy/my):mx-a}if(xt>0)xt=0;if(yt>0)yt=0;return[xb,yb,xt,yt]}
 function derive(sys,v,t){/* v: base components → full record */
@@ -452,7 +505,7 @@ function derive(sys,v,t){/* v: base components → full record */
   return{w,bx,by,Mx,My,Mxy,M1:c+r,M2:c-r,Qx,Qy,Qv:Math.hypot(Qx,Qy),WXb:wa[0],WYb:wa[1],WXt:wa[2],WYt:wa[3],sb:6*Mx/(t*t)}}
  const[ux,uy,Nx,Ny,Nxy]=v,sx=Nx/t,sy=Ny/t,txy=Nxy/t,c=(sx+sy)/2,r=Math.hypot((sx-sy)/2,txy),s1=c+r,s2=c-r;
  return{ux,uy,um:Math.hypot(ux,uy),Nx,Ny,Nxy,sx,sy,txy,s1,s2,svm:Math.sqrt(s1*s1-s1*s2+s2*s2),tmax:r}}
-function recover(R,XY){const mesh=R.mesh,N=mesh.nodes,nn=N.length,ne=mesh.els.length,t=R.mat.t;
+function recover(R,XY){const mesh=R.mesh,N=mesh.nodes,nn=N.length,ne=mesh.els.length,t=R.mat.t,fy=(R.mat.fy||0)*1e3,xt=(b,m)=>{b.svs=surfVM(m.Nx,m.Ny,m.Nxy,b.Mx,b.My,b.Mxy,t);b.uts=fy>0?b.svs/fy:0;m.ut=fy>0?m.svm/fy:0};
  /* element-corner base components: B: [Mx,My,Mxy,Qx,Qy], M: [Nx,Ny,Nxy] */
  const cB=new Float64Array(ne*4*5),cM=new Float64Array(ne*4*3),gB=[],gM=[];
  mesh.els.forEach((e,k)=>{const de=[],ue=[];e.forEach(i=>{for(let c=0;c<3;c++)de.push(R.B.u[3*i+c]);for(let c=0;c<2;c++)ue.push(R.Mm.u[2*i+c])});
@@ -465,9 +518,9 @@ function recover(R,XY){const mesh=R.mesh,N=mesh.nodes,nn=N.length,ne=mesh.els.le
  /* full field arrays: nodal (averaged) and per element corner (unaveraged) */
  const F={};Object.keys(FLD).forEach(k=>{F[k]={n:new Float64Array(nn),e:new Float64Array(ne*4)}});
  for(let n=0;n<nn;n++){const b=derive('B',[R.B.u[3*n],R.B.u[3*n+1],R.B.u[3*n+2],avB[n*5],avB[n*5+1],avB[n*5+2],avB[n*5+3],avB[n*5+4]],t),m=derive('M',[R.Mm.u[2*n],R.Mm.u[2*n+1],avM[n*3],avM[n*3+1],avM[n*3+2]],t);
-  for(const k in b)F[k].n[n]=b[k];for(const k in m)F[k].n[n]=m[k]}
+  xt(b,m);for(const k in b)F[k].n[n]=b[k];for(const k in m)F[k].n[n]=m[k]}
  mesh.els.forEach((e,k)=>e.forEach((n,i)=>{const j=k*4+i,o=j*5,p=j*3,b=derive('B',[R.B.u[3*n],R.B.u[3*n+1],R.B.u[3*n+2],cB[o],cB[o+1],cB[o+2],cB[o+3],cB[o+4]],t),m=derive('M',[R.Mm.u[2*n],R.Mm.u[2*n+1],cM[p],cM[p+1],cM[p+2]],t);
-  for(const q in b)F[q].e[j]=b[q];for(const q in m)F[q].e[j]=m[q]}));
+  xt(b,m);for(const q in b)F[q].e[j]=b[q];for(const q in m)F[q].e[j]=m[q]}));
  R.F=F}
 /* value of a field at a point; avg = nodal averaged (smooth) or element (unaveraged) */
 function fieldAt(R,key,x,y,avg){const q=locate(R.mesh,x,y);if(!q)return null;const e=R.mesh.els[q.e],N=shp(q.r,q.s),f=R.F[key];let v=0;for(let i=0;i<4;i++)v+=N[i]*(avg?f.n[e[i]]:f.e[q.e*4+i]);return v}
@@ -599,6 +652,38 @@ function runVerification(){const out=[],G=h=>{out.push({h,t0:Date.now()})},T=(na
   let s=0;R.B.R.forEach((v,d)=>{if(d%3==0)s+=v});T('  reactions sum to the load (kN)',-q*4,s,1e-9,'equilibrium')}
  {const m=vModel({shapes:[{id:1,kind:'plate',pts:vRect(0,0,4,2)}],mesh:{h:.1}}),R=analyse(m,{always:true}),nat=(()=>{/* natural (row-by-row) profile for comparison */const nd=3,n=R.mesh.nodes.length,fc=new Int32Array(nd*n).map((_,i)=>i);R.mesh.els.forEach(e=>{const dd=[];e.forEach(i=>{for(let c=0;c<nd;c++)dd.push(nd*i+c)});dd.forEach(a=>dd.forEach(b=>{if(b<fc[a])fc[a]=b}))});let p=0;fc.forEach((f,i)=>p+=i-f+1);return p})();
   T('Reverse Cuthill–McKee ordering shrinks the skyline: RCM ÷ natural profile = '+(R.B.prof/nat).toFixed(2)+' (1 = smaller)',1,R.B.prof<nat?1:0,0,'profile '+R.B.prof+' vs '+nat,1)}
+ G('Connections (v1.4): rigid zones, bolt bearing, graded mesh, utilisation');
+ {const st=()=>({mat:{E:210e6,nu:.3,t:.01,fy:355,pre:'s355'},mesh:{h:.01,zones:[],ref:24,gr:1.3},shapes:[{id:1,kind:'plate',rect:true,pts:vRect(0,0,.2,.1)},{id:2,kind:'hole',circ:true,c:[.15,.05],r:.011,n:32}],sups:[{id:3,type:'line',pts:[[0,0],[0,.1]],pre:'fix'}],loads:[],anns:[],cuts:[],rigs:[]});
+  let m=st();m.rigs=[{id:9,rig:1,sid:2,fx:0,fy:-50}];let R=analyse(m),q=sysSum(R.Mm);T('Rigid zone on a hole: reactions balance the bolt force (kN)',50,q.R.y,1e-9,'ΣRy for Fy = −50 kN at the hole');
+  T('  every hole-edge node is tied to the centre',32,R.rigInfo[0].nodes.length,0,'32-segment hole, 24 elements round it',1);
+  m=st();m.loads=[{id:9,kind:'bolt',sid:2,fx:30,fy:-40}];R=analyse(m);q=sysSum(R.Mm);const ids=R.ringNodes(shapePts(m.shapes[1]));let back=0;ids.forEach(i=>{const p=R.mesh.nodes[i],ex=p.x-.15,ey=p.y-.05,fx=R.Mm.F[2*i],fy=R.Mm.F[2*i+1];if(fx*fx+fy*fy>1e-20&&ex*.6-ey*.8<-1e-9)back++});
+  T('Bolt bearing: the hole-edge forces sum to the bolt force, Fx (kN)',30,q.F.x,1e-12);T('  … and Fy (kN)',-40,q.F.y,1e-12);T('  no force on the half of the hole facing away from the bolt force',0,back,0,ids.length+' edge nodes',1);
+  /* cantilever in plane loaded through a rigid zone at its tip: beam theory with shear */
+  const L=1,hh=.1,t=.01,E=210e6,P=1,m2={mat:{E,nu:.3,t,pre:'cust'},mesh:{h:.0125,zones:[]},shapes:[{id:1,kind:'plate',rect:true,pts:vRect(0,-hh/2,L,hh)}],sups:[{id:2,type:'line',pts:[[0,-hh/2],[0,hh/2]],pre:'pin'}],loads:[],anns:[],cuts:[],rigs:[{id:3,rig:1,rect:true,pts:vRect(L-.001,-hh/2-.001,.002,hh+.002),fy:-P}]};
+  R=analyse(m2);const I=t*hh**3/12,G_=E/2.6,d=P*L**3/(3*E*I)+P*L/(5/6*G_*t*hh);T('Deep cantilever loaded through a rigid end: tip deflection (mm), Timoshenko',-d*1e3,R.Mm.u[R.Mm.nm+1]*1e3,.03,'rigid end plate, Fy = −1 kN');
+  T('  rigid end rotates as one body: θz = −dv/dx at the tip (mrad)',-(P*L*L/(2*E*I))*1e3,R.Mm.u[R.Mm.nm+2]*1e3,.05,'beam theory (bending only)');
+  /* out-of-plane: a strip clamped at one end, end moment applied as a tilt through a rigid edge: w = ML²/2D·b exactly (ν = 0) */
+  const b=.2,D=210e6*.02**3/12,Tq=.5,m3={mat:{E:210e6,nu:0,t:.02,pre:'cust'},mesh:{h:.05,zones:[]},shapes:[{id:1,kind:'plate',rect:true,pts:vRect(0,0,1,b)}],sups:[{id:2,type:'line',pts:[[0,0],[0,b]],pre:'cl'}],loads:[],anns:[],cuts:[],rigs:[{id:3,rig:1,rect:true,pts:vRect(.999,-.001,.002,b+.002),tx:Tq}]};
+  R=analyse(m3);T('Plate strip, end tilt Tx through a rigid edge: w = TL²/2Db (mm)',Tq/(2*D*b)*1e3,R.B.u[R.B.nm]*1e3,1e-6,'pure bending is exact in MITC4');
+  /* a fixed bolt as a support: moment reaction equals the lever arm */
+  m=st();m.sups=[];m.shapes[1].c=[.03,.05];m.rigs=[{id:9,rig:1,sid:2,fix:{u:1,v:1,rz:1}}];m.loads=[{id:8,kind:'traction',pts:[[.2,0],[.2,.1]],qx:0,qy:-500}];R=analyse(m);
+  T('Fixed bolt as the only support: reaction moment Mz = F·a (kNm)',50*.17,R.Mm.R[R.Mm.nm+2],1e-6,'F = 50 kN at a = 170 mm');
+  m.rigs[0].fix={u:1,v:1};R=analyse(m);T('  a single pinned bolt is a mechanism (free to spin)',0,R.Mm.ok?1:0,0,R.warn[0]?'reported':'',1);
+  /* graded refinement and automatic refinement at openings, on the quarter Kirsch model of the closed-form group */
+  const qk=(mesh)=>vModel({mat:{E:200e6,nu:.3,t:.01},mesh,shapes:[{id:1,kind:'plate',pts:vRect(0,0,10,10)},{id:2,kind:'hole',circ:true,c:[0,0],r:1,n:192}],sups:[{type:'line',pts:[[0,0],[0,10]],pre:'rly'},{type:'line',pts:[[0,0],[10,0]],pre:'rlx'}],loads:[{kind:'traction',pts:[[10,0],[10,10]],qx:100,qy:0}]}),scf=r=>fieldAt(r,'sx',0,1+1e-4,true)/1e4,Hw=(2+Math.pow(.9,3))/.9;
+  const Rg=analyse(qk({h:.5,zones:[{pts:vRect(0,0,2.5,2.5),h:.05}],gr:1.3}));T('Graded mesh (×1.3 per element): SCF at the hole edge (Howland 3.03)',Hw,scf(Rg),.05,Rg.mesh.els.length+' elements');
+  {const X=Rg.mesh.X;let mr=0;for(let i=1;i<X.length-1;i++){const a=X[i]-X[i-1],b=X[i+1]-X[i];mr=Math.max(mr,b/a,a/b)}T('  neighbouring element sizes differ by at most the grading ratio (×1.3)',1,mr<=1.3*1.12?1:0,0,'largest ratio '+mr.toFixed(2),1)}
+  const Ra=analyse(qk({h:.5,zones:[],ref:128,gr:1.3}));T('Automatic refinement at the opening (128 elements round it, 32 in the quarter; no zone): SCF (Howland 3.03)',Hw,scf(Ra),.05,Ra.mesh.els.length+' elements, '+Ra.mesh.auto+' opening refined');
+  /* utilisation fields */
+  const m4={mat:{E:210e6,nu:.3,t:.01,fy:250,pre:'cust'},mesh:{h:.05,zones:[]},shapes:[{id:1,kind:'plate',rect:true,pts:vRect(0,0,1,.5)}],sups:[{id:2,type:'line',pts:[[0,0],[0,.5]],pre:'rly'},{id:3,type:'pt',p:[0,0],pre:'pin'}],loads:[{id:4,kind:'traction',pts:[[1,0],[1,.5]],qx:1000,qy:0}],anns:[],cuts:[],rigs:[]};
+  R=analyse(m4);T('Utilisation: uniform 100 MPa tension, fy = 250 MPa (%)',40,fieldAt(R,'ut',.5,.25,true)*100,1e-6);
+  const m5=Object.assign({},m3,{mat:{E:210e6,nu:0,t:.02,fy:275,pre:'cust'}});R=analyse(m5);T('Surface von Mises in pure bending: 6M/t² (MPa)',6*(Tq/b)/(.02*.02)/1e3,fieldAt(R,'svs',.5,b/2,true)/1e3,1e-6,'M = T/b per metre')}
+ {/* selection and clipboard on a scratch model */const M0=M,R0=R,S0=sel,C0=CLIP,U0=UND.slice(),D0=RED.slice();try{M=PRESETS.fin.f();fixIds();R=analyse(M);const nS=M.shapes.length,nL=M.loads.length;
+  setSel(allObjs());T('Select all picks every item (fin plate)',allObjs().length,selList().length,0,'',1);
+  setSel(M.shapes.filter(s=>s.kind=='hole'));copySel();pasteClip([.05,.4]);T('Copy & paste a bolt group: holes and their bearing loads come too',1,M.shapes.length==nS+3&&M.loads.length==nL+3?1:0,0,M.shapes.length+' shapes, '+M.loads.length+' loads',1);
+  const nh=M.shapes.slice(-3),ok=M.loads.slice(-3).every((l,i)=>l.sid===nh[i].id)&&new Set([...M.shapes,...M.loads,...M.sups].map(o=>o.id)).size==M.shapes.length+M.loads.length+M.sups.length;T('  pasted loads point at the new holes, and every id is unique',1,ok?1:0,0,'',1);
+  const y0=nh[0].c[1];setSel(nh);const L=selList(),src=new Map(L.map(o=>[o,JSON.parse(JSON.stringify(o))]));L.forEach(o=>moveObj(o,.01,0,src.get(o)));T('Group move moves every selected opening',3,nh.filter(s=>Math.abs(s.c[0]-.06)<1e-12).length,0,'',1);
+  }finally{M=M0;R=R0;sel=S0;CLIP=C0;UND=U0;RED=D0}}
  G('Report (v1.3): calculation sheets and PDF');
  {const M0=M,R0=R;try{let bad=[],nEx=0,minP=99,chars=new Set();const st=Object.assign(rpLoadSt(),{notes:'Check note'});Object.keys(st.sel).forEach(k=>st.sel[k]=1);
   Object.keys(PRESETS).forEach(k=>{M=PRESETS[k].f();R=analyse(M);nEx++;try{const pg=rpMake(st);minP=Math.min(minP,pg.length);pg.forEach(p=>p.it.forEach(o=>{if(o.t=='t')for(const ch of o.s){const c=ch.codePointAt(0);if(!(c>=32&&c<=126||PW_U[c]||PW_S[c]))chars.add(ch)}}))}catch(e){bad.push(k+': '+e.message)}});
@@ -629,14 +714,18 @@ let HMEL=null;const $=id=>document.getElementById(id)||(HMEL&&HMEL.querySelector
 let W=0,H=0,DPR=1,S=40,ox=0,oy=0,M=blankModel(),R=null,tool='sel',sel=null,hov=null,drag=null,poly=null,mouse=null,UND=[],RED=[],NID=1,dirty=false,lastSolve=0,flyShut=null;
 /* v1.2 animation: λ goes 0 → 1 → 0; results of a linear analysis scale with the load, so each display is drawn at λ × its full value */
 let ANF=1,anOn=false,anT0=0,anPh=0,anSpd=1;const AK={D:1,C:1,V:1,S:1,R:1},AF=k=>anOn&&AK[k]?ANF:1;
-const O={field:'w',avg:true,con:true,iso:false,mesh:true,def:true,vec:false,pk:true,rx:false,v3:false,nn:false,bands:12,pal:'auto',defS:1,cutS:1,vecS:1,op:.9,az:-.6,el:.75,z3:1};
-const TO={shape:'rect',lsup:'ss',psup:'col',k:5000,kg:2e4,gmode:'click',q:10,amode:'click',p:10,P:50,fx:50,fy:0,qx:0,qy:-20,zh:.1};
-function blankModel(){return{mat:{E:33e6,nu:.2,t:.2,pre:'c30'},mesh:{h:.5,zones:[]},shapes:[],sups:[],loads:[],anns:[],cuts:[]}}
-const MATS={c30:['Concrete C30/37',33e6,.2],c40:['Concrete C40/50',35e6,.2],s355:['Steel S355',210e6,.3],alu:['Aluminium 6082',70e6,.33],tim:['Timber panel (isotropic approx.)',9e6,.3],gl:['Glass',70e6,.22],cust:['Custom',0,0]};
+const O={lu:'auto',field:'w',avg:true,con:true,iso:false,mesh:true,def:true,vec:false,pk:true,rx:false,v3:false,nn:false,bands:12,pal:'auto',defS:1,cutS:1,vecS:1,op:.9,az:-.6,el:.75,z3:1};
+const TO={bd:22,bn:1,bm:1,bp:70,bg:60,bact:'bear',bfx:0,bfy:-50,bP:0,rsh:'rect',rfx:0,rfy:0,rmz:0,rP:0,rtx:0,rty:0,rfix:'none',zmm:100,shape:'rect',lsup:'ss',psup:'col',k:5000,kg:2e4,gmode:'click',q:10,amode:'click',p:10,P:50,fx:50,fy:0,qx:0,qy:-20,zh:.1};
+function blankModel(){return{mat:{E:33e6,nu:.2,t:.2,pre:'c30'},mesh:{h:.5,zones:[],ref:0,gr:1.3},shapes:[],sups:[],loads:[],anns:[],cuts:[],rigs:[]}}
+const MATS={c30:['Concrete C30/37',33e6,.2],c40:['Concrete C40/50',35e6,.2],s275:['Steel S275',210e6,.3,275],s355:['Steel S355',210e6,.3,355],s460:['Steel S460',210e6,.3,460],alu:['Aluminium 6082-T6',70e6,.33,250],tim:['Timber panel (isotropic approx.)',9e6,.3],gl:['Glass',70e6,.22],cust:['Custom',0,0]};
 const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 const sx=x=>ox+x*S,sy=y=>oy-y*S,wx=p=>(p-ox)/S,wy=p=>(oy-p)/S;
 const f3=v=>{if(v==null||!isFinite(v))return'–';const a=Math.abs(v);return a>=1e4||a&&a<1e-3?v.toExponential(2):String(+v.toPrecision(a>=100?4:3))},fm=v=>(+(+v).toFixed(3)).toString();
-const nid=()=>NID++,dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
+const nid=()=>NID++;
+/* v1.4 lengths shown in mm for small models (connection plates) or as chosen in the Display box */
+function modelSpan(){let a=Infinity,b=-Infinity,c=Infinity,d=-Infinity;M.shapes.forEach(s=>shapePts(s).forEach(p=>{a=Math.min(a,p[0]);b=Math.max(b,p[0]);c=Math.min(c,p[1]);d=Math.max(d,p[1])}));return a<b?Math.max(b-a,d-c):10}
+const lenMM=()=>O.lu=='mm'||O.lu=='auto'&&modelSpan()<2.5,fmm=v=>String(+(+v).toFixed(Math.abs(v)<10?2:1)),fL=v=>lenMM()?fmm(v*1000)+' mm':fm(v)+' m',LU=()=>lenMM()?'mm':'m';
+const isSel=o=>!!sel&&!!o&&(sel.o===o||!!(sel.set&&sel.set.has(o)));
 function toast(t,bad){const e=$('toast');e.textContent=t;e.className=bad?'bad':'';e.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>e.hidden=true,3200)}
 /* ---------- undo / redo ---------- */
 const snapM=()=>JSON.stringify(M,(k,v)=>k[0]=='_'?undefined:v);
@@ -644,7 +733,7 @@ function pushU(){UND.push(snapM());if(UND.length>200)UND.shift();RED=[];syncUR()
 function undo(){if(!UND.length)return;RED.push(snapM());M=JSON.parse(UND.pop());fixIds();sel=null;poly=null;buildPop();update()}
 function redo(){if(!RED.length)return;UND.push(snapM());M=JSON.parse(RED.pop());fixIds();sel=null;buildPop();update()}
 function syncUR(){$('undo').disabled=!UND.length;$('redo').disabled=!RED.length}
-function fixIds(){let m=0;['shapes','sups','loads','anns','cuts'].forEach(k=>(M[k]||[]).forEach(o=>{if(!o.id)o.id=++m+NID;m=Math.max(m,o.id)}));(M.mesh.zones||[]).forEach(z=>{if(!z.id)z.id=++m+NID;m=Math.max(m,z.id)});NID=Math.max(NID,m+1)}
+function fixIds(){M.rigs=M.rigs||[];M.rigs.forEach(r=>r.rig=1);['sups','loads','anns','cuts','shapes'].forEach(k=>M[k]=M[k]||[]);M.mesh=M.mesh||{h:.5,zones:[]};M.mesh.zones=M.mesh.zones||[];let m=0;['shapes','sups','loads','anns','cuts','rigs'].forEach(k=>(M[k]||[]).forEach(o=>{if(!o.id)o.id=++m+NID;m=Math.max(m,o.id)}));(M.mesh.zones||[]).forEach(z=>{if(!z.id)z.id=++m+NID;m=Math.max(m,z.id)});NID=Math.max(NID,m+1)}
 /* ---------- analysis ---------- */
 let solveT=0;
 function update(now){dirty=true;syncUR();clearTimeout(solveT);if(now)runSolve();else solveT=setTimeout(runSolve,0)}
@@ -653,16 +742,16 @@ function runSolve(){dirty=false;try{R=M.shapes.some(s=>s.kind=='plate')?analyse(
 function saveLocal(){try{localStorage.setItem('pp_model',snapM())}catch(e){}}
 /* choose a sensible result when the current one has nothing to show */
 let fieldUser=false;
-function autoField(){if(!R||R.empty)return;const s=FLD[O.field]&&FLD[O.field].s,hb=R.hasB&&R.B.ok,hm=R.hasM&&R.Mm.ok;if(s=='B'&&!hb&&hm)O.field=fieldUser&&O.lastM?O.lastM:'svm';else if(s=='M'&&!hm&&hb)O.field=fieldUser&&O.lastB?O.lastB:'w'}
-function buildFieldSel(){const e=$('fSel'),hb=R&&R.hasB,hm=R&&R.hasM,g=(t,s,on)=>'<optgroup label="'+t+(on?'':' – no load')+'">'+Object.keys(FLD).filter(k=>FLD[k].s==s).map(k=>'<option value="'+k+'">'+FLD[k].lab+' ('+FLD[k].u+')</option>').join('')+'</optgroup>';
+function autoField(){if(!R||R.empty)return;if(FLD[O.field]&&!fldOn(O.field))O.field=FLD[O.field].s=='B'?'svs':'svm';const s=FLD[O.field]&&FLD[O.field].s,hb=R.hasB&&R.B.ok,hm=R.hasM&&R.Mm.ok;if(s=='B'&&!hb&&hm)O.field=fieldUser&&O.lastM?O.lastM:'svm';else if(s=='M'&&!hm&&hb)O.field=fieldUser&&O.lastB?O.lastB:'w'}
+function buildFieldSel(){const e=$('fSel'),hb=R&&R.hasB,hm=R&&R.hasM,g=(t,s,on)=>'<optgroup label="'+t+(on?'':' – no load')+'">'+Object.keys(FLD).filter(k=>FLD[k].s==s&&fldOn(k)).map(k=>'<option value="'+k+'">'+FLD[k].lab+' ('+FLD[k].u+')</option>').join('')+'</optgroup>';
  const h='<option value="none">None (geometry only)</option>'+g('Out-of-plane (bending)','B',hb)+g('In-plane (membrane)','M',hm);if(e.dataset.h!==h){e.innerHTML=h;e.dataset.h=h}e.value=O.field}
 /* ---------- resize / view ---------- */
 function resize(){const r=$('wrap').getBoundingClientRect();DPR=window.devicePixelRatio||1;W=r.width;H=r.height;cv.width=Math.max(1,Math.round(W*DPR));cv.height=Math.max(1,Math.round(H*DPR));ctx.setTransform(DPR,0,0,DPR,0,0);draw()}
 function extent(){let a=Infinity,b=-Infinity,c=Infinity,d=-Infinity;const P=p=>{a=Math.min(a,p[0]);b=Math.max(b,p[0]);c=Math.min(c,p[1]);d=Math.max(d,p[1])};
- M.shapes.forEach(s=>shapePts(s).forEach(P));M.sups.forEach(s=>s.type=='pt'?P(s.p):s.pts&&s.pts.forEach(P));M.loads.forEach(l=>l.p?P(l.p):l.pts&&l.pts.forEach(P));M.anns.forEach(n=>(n.pts||[]).forEach(P));M.cuts.forEach(c=>{P(c.a);P(c.b)});
+ M.shapes.forEach(s=>shapePts(s).forEach(P));M.sups.forEach(s=>s.type=='pt'?P(s.p):s.pts&&s.pts.forEach(P));M.loads.forEach(l=>l.p?P(l.p):l.pts&&l.pts.forEach(P));M.anns.forEach(n=>(n.pts||[]).forEach(P));M.cuts.forEach(c=>{P(c.a);P(c.b)});(M.rigs||[]).forEach(r=>{const Q=rigPts(M,r);if(Q)Q.forEach(P)});
  return a<b?[a,b,c,d]:[-1,10,-1,8]}
 function fit(){for(let it=0;it<3;it++){let[a,b,c,d]=extent();M.anns.forEach(n=>{if(n.k!='text')return;const L=String(n.t||'').split('\n'),fs=n.fs||12;ctx.font='500 '+fs+'px system-ui,sans-serif';const w=Math.min((Math.max(...L.map(l=>ctx.measureText(l).width))+20)/S,.6*(b-a)),h=(L.length*fs*1.35+8)/S;b=Math.max(b,n.pts[0][0]+w);c=Math.min(c,n.pts[0][1]-h)});
- const nT=M.loads.filter(l=>l.kind=='area').length+M.sups.filter(s=>s.type=='area').length,tp=nT?34+26*nT:0,pad=56,dk=W>760?280:0,rw=Math.max(200,W-dk-2*pad),rh=Math.max(150,H-2*pad-30-tp);S=Math.min(rw/(b-a||1),rh/(d-c||1));S=Math.max(2,Math.min(S,800));ox=pad+(rw-(b-a)*S)/2-a*S;oy=pad+30+tp+(rh+(d-c)*S)/2+c*S}draw()}
+ const nT=M.loads.filter(l=>l.kind=='area').length+M.sups.filter(s=>s.type=='area').length,tp=nT?34+26*nT:0,pad=56,dk=W>760?280:0,rw=Math.max(200,W-dk-2*pad),rh=Math.max(150,H-2*pad-30-tp);S=Math.min(rw/(b-a||1),rh/(d-c||1));S=Math.max(2,Math.min(S,2e5));ox=pad+(rw-(b-a)*S)/2-a*S;oy=pad+30+tp+(rh+(d-c)*S)/2+c*S}draw()}
 /* ---------- snapping ---------- */
 function snapPt(px,py,o){o=o||{};let best=null,bd=11;const T=(p,k)=>{const d=Math.hypot(sx(p[0])-px,sy(p[1])-py);if(d<bd){bd=d;best={p:[p[0],p[1]],k}}};
  M.shapes.forEach(s=>{shapePts(s).forEach(p=>T(p,'vertex'));if(s.circ)T(s.c,'centre')});M.sups.forEach(s=>s.type=='pt'?T(s.p,'support'):s.pts&&s.pts.forEach(p=>T(p,'end')));M.loads.forEach(l=>l.p?T(l.p,'load'):(l.pts&&!l.sid&&!l.all?l.pts.forEach(p=>T(p,'end')):0));M.cuts.forEach(c=>{T(c.a,'end');T(c.b,'end')});
@@ -734,22 +823,23 @@ function draw(){if(!W)return;const bg=css('--bg'),mem=css('--mem'),acc=css('--ac
   if(dp){ctx.globalAlpha=.55;ctx.strokeStyle=n2;ctx.beginPath();R.mesh.els.forEach(e=>{e.forEach((n,i)=>{const q=dp(n);i?ctx.lineTo(sx(q[0]),sy(q[1])):ctx.moveTo(sx(q[0]),sy(q[1]))});ctx.closePath()});ctx.stroke()}ctx.globalAlpha=1}
  isoLines();if(O.vec)drawVec();
  /* shape outlines */
- M.shapes.forEach(s=>{pathPoly(shapePts(s));ctx.strokeStyle=s.kind=='hole'?n3:mem;ctx.lineWidth=s===selO()?3:2;ctx.setLineDash(s.kind=='hole'?[6,4]:[]);ctx.stroke();ctx.setLineDash([])});
- (M.mesh.zones||[]).forEach(z=>{pathPoly(z.pts);ctx.strokeStyle=n2;ctx.globalAlpha=.8;ctx.lineWidth=z===selO()?2.5:1.2;ctx.setLineDash([2,4]);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1;const c=z.pts[3];ctx.fillStyle=n2;ctx.font='600 10.5px system-ui';ctx.textAlign='left';ctx.fillText('mesh '+fm(z.h*1000)+' mm',sx(c[0])+4,sy(c[1])+13)});
+ M.shapes.forEach(s=>{pathPoly(shapePts(s));ctx.strokeStyle=s.kind=='hole'?n3:mem;ctx.lineWidth=isSel(s)?3:2;ctx.setLineDash(s.kind=='hole'?[6,4]:[]);ctx.stroke();ctx.setLineDash([])});
+ (M.mesh.zones||[]).forEach(z=>{pathPoly(z.pts);ctx.strokeStyle=n2;ctx.globalAlpha=.8;ctx.lineWidth=isSel(z)?2.5:1.2;ctx.setLineDash([2,4]);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1;const c=z.pts[3];ctx.fillStyle=n2;ctx.font='600 10.5px system-ui';ctx.textAlign='left';ctx.fillText('mesh '+fm(z.h*1000)+' mm',sx(c[0])+4,sy(c[1])+13)});
  M.loads.filter(l=>l.kind=='area').forEach(drawAreaLoad);M.sups.filter(s=>s.type=='area').forEach(drawGround);
  M.sups.filter(s=>s.type!='area').forEach(drawSup);
+ (M.rigs||[]).forEach(drawRig);
  M.loads.filter(l=>l.kind!='area').forEach(drawLoad);
  M.cuts.forEach(drawCut);
- if(O.rx)drawReactions();
+ if(O.rx){drawReactions();drawRigReac()}
  if(O.pk)drawPeaks();
  M.anns.forEach(drawAnn);
  drawSel();drawPreview();if(typeof hmCanvasMark=='function')hmCanvasMark();if(typeof elCanvasMark=='function')elCanvasMark();if(O.nn)drawNN();if(anOn)pill(W/2,26,'load factor λ = '+ANF.toFixed(2)+' · loads and results × λ',{b:1,c:css('--neon3'),fixed:1});chipSet();legend()}
-function drawGrid(){const g=+$('snap').value||.25;let st=g;while(st*S<14)st*=2;const maj=st*4,x0=wx(0),x1=wx(W),y0=wy(H),y1=wy(0);ctx.lineWidth=1;
+function drawGrid(){const g0=+$('snap').value;let st=g0||.25;while(st*S<14)st*=2;if(!g0)while(st*S>120)st/=2;const maj=st*4,x0=wx(0),x1=wx(W),y0=wy(H),y1=wy(0);ctx.lineWidth=1;
  for(const[s,a]of[[st,.55],[maj,1]]){ctx.strokeStyle=css('--grid');ctx.globalAlpha=a;ctx.beginPath();for(let x=Math.ceil(x0/s)*s;x<=x1;x+=s){ctx.moveTo(Math.round(sx(x))+.5,0);ctx.lineTo(Math.round(sx(x))+.5,H)}for(let y=Math.ceil(y0/s)*s;y<=y1;y+=s){ctx.moveTo(0,Math.round(sy(y))+.5);ctx.lineTo(W,Math.round(sy(y))+.5)}ctx.stroke()}
  ctx.globalAlpha=.7;ctx.strokeStyle=css('--mut');ctx.beginPath();ctx.moveTo(sx(0),sy(0));ctx.lineTo(sx(0)+26,sy(0));ctx.moveTo(sx(0),sy(0));ctx.lineTo(sx(0),sy(0)-26);ctx.stroke();ctx.fillStyle=css('--mut');ctx.font='10px system-ui';ctx.fillText('x',sx(0)+29,sy(0)+4);ctx.fillText('y',sx(0)-3,sy(0)-30);ctx.globalAlpha=1}
 function hatchFill(P,c,a,sp){ctx.save();pathPoly(P);ctx.clip();ctx.strokeStyle=c;ctx.globalAlpha=a;ctx.lineWidth=1;const xs=P.map(p=>sx(p[0])),ys=P.map(p=>sy(p[1])),x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);ctx.beginPath();for(let d=x0-(y1-y0);d<x1;d+=sp){ctx.moveTo(d,y1);ctx.lineTo(d+(y1-y0),y0)}ctx.stroke();ctx.restore()}
 function loadRegion(l){if(l.all){const s=M.shapes.filter(o=>o.kind=='plate');return s.map(shapePts)}const P=regionPts(M,l);return P?[P]:[]}
-function drawAreaLoad(l){const c=css('--neon3'),Ps=loadRegion(l),on=l===selO()||l===hov;const res=O.con&&R&&!R.empty&&O.field!='none'&&sysOK(FLD[O.field].s);Ps.forEach(P=>{ctx.save();pathPoly(P);ctx.fillStyle=c;ctx.globalAlpha=on?.16:res?0:.07;ctx.fill();ctx.restore();hatchFill(P,c,on?.55:res?.12:.3,10);if(!l.all&&!l.sid){pathPoly(P);ctx.strokeStyle=c;ctx.lineWidth=on?2:1;ctx.stroke()}});
+function drawAreaLoad(l){const c=css('--neon3'),Ps=loadRegion(l),on=isSel(l)||l===hov;const res=O.con&&R&&!R.empty&&O.field!='none'&&sysOK(FLD[O.field].s);Ps.forEach(P=>{ctx.save();pathPoly(P);ctx.fillStyle=c;ctx.globalAlpha=on?.16:res?0:.07;ctx.fill();ctx.restore();hatchFill(P,c,on?.55:res?.12:.3,10);if(!l.all&&!l.sid){pathPoly(P);ctx.strokeStyle=c;ctx.lineWidth=on?2:1;ctx.stroke()}});
  const P=Ps[0];if(!P)return;regionTag(l,P,'q = '+f3(l.q*AF('R'))+' kPa'+(l.sid||l.all?'':' (patch)'),c,on)}
 /* a region's tag sits outside the plate with a leader to the region, so it is easy to see and to click */
 let TAGN=0;
@@ -758,12 +848,12 @@ function regionTag(o,P,t,c,on){let x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infi
  ix=x0+Math.min(.12*(x1-x0),40/S),iy=above?y1-Math.min(.12*(y1-y0),40/S):y0+Math.min(.12*(y1-y0),40/S),Xi=sx(ix),Yi=sy(iy),Ty=above?sy(g1)-36-i*26:sy(g0)+36+i*26,Tx=Math.max(10,Math.min(W-160,Xi-8));
  ctx.save();ctx.strokeStyle=c;ctx.lineWidth=on?2:1.3;ctx.setLineDash([3,2]);ctx.beginPath();ctx.moveTo(Xi,Yi);ctx.lineTo(Xi,Ty+(above?9:-9));ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=c;ctx.beginPath();ctx.arc(Xi,Yi,3.4,0,7);ctx.fill();ctx.restore();
  o._tag=pill(Tx,Ty,t,{c,b:1,al:'l',fixed:1,bg:on?css('--plate'):null})}
-function drawGround(s){const c=css('--neon2'),P=s.all?null:regionPts(M,s),on=s===selO();const Ps=P?[P]:M.shapes.filter(o=>o.kind=='plate').map(shapePts);
+function drawGround(s){const c=css('--neon2'),P=s.all?null:regionPts(M,s),on=isSel(s);const Ps=P?[P]:M.shapes.filter(o=>o.kind=='plate').map(shapePts);
  Ps.forEach(P=>{pathPoly(P);ctx.strokeStyle=c;ctx.lineWidth=on?2.4:1.2;ctx.setLineDash([3,3]);ctx.stroke();ctx.setLineDash([]);const xs=P.map(p=>p[0]),ys=P.map(p=>p[1]),st=Math.max(40/S,(Math.max(...xs)-Math.min(...xs))/14);
   ctx.save();pathPoly(P);ctx.clip();ctx.strokeStyle=c;ctx.globalAlpha=.45;ctx.lineWidth=1;for(let x=Math.min(...xs)+st/2;x<Math.max(...xs);x+=st)for(let y=Math.min(...ys)+st/2;y<Math.max(...ys);y+=st){if(!pip(x,y,P))continue;const X=sx(x),Y=sy(y);ctx.beginPath();ctx.moveTo(X-6,Y);for(let k=0;k<4;k++)ctx.lineTo(X-6+3*k+1.5,Y+(k%2?-3:3));ctx.lineTo(X+6,Y);ctx.stroke()}ctx.restore()});
  regionTag(s,Ps[0],'ground k = '+f3(s.k)+' kN/m³',c,on||s===hov)}
 const SUPC=p=>({ss:'--neon2',ssh:'--neon2',cl:'--neon2',col:'--neon2',colf:'--neon2',pin:'--acc',rlx:'--acc',rly:'--acc',fix:'--mem',spr:'--neon2'}[p]||'--neon2');
-function drawSup(s){const c=css(SUPC(s.pre)),on=s===selO()||s===hov;ctx.save();ctx.strokeStyle=c;ctx.fillStyle=c;
+function drawSup(s){const c=css(SUPC(s.pre)),on=isSel(s)||s===hov;ctx.save();ctx.strokeStyle=c;ctx.fillStyle=c;
  if(s.type=='line'){const[a,b]=s.pts,A=[sx(a[0]),sy(a[1])],B=[sx(b[0]),sy(b[1])],L=Math.hypot(B[0]-A[0],B[1]-A[1])||1,[nx,ny]=outSide(a,b),tx=(B[0]-A[0])/L,ty=(B[1]-A[1])/L;
   if(lineInner(s)){/* a wall or beam line inside the plate: a hatched band, solid for clamped */const px=-ty,py=tx,w=s.pre=='cl'||s.pre=='fix'?5:3.6,band=()=>{ctx.beginPath();ctx.moveTo(A[0]+px*w,A[1]+py*w);ctx.lineTo(B[0]+px*w,B[1]+py*w);ctx.lineTo(B[0]-px*w,B[1]-py*w);ctx.lineTo(A[0]-px*w,A[1]-py*w);ctx.closePath()};
    if(on){ctx.globalAlpha=.25;ctx.lineWidth=w*2+10;ctx.beginPath();ctx.moveTo(...A);ctx.lineTo(...B);ctx.stroke();ctx.globalAlpha=1}
@@ -787,7 +877,13 @@ function drawSup(s){const c=css(SUPC(s.pre)),on=s===selO()||s===hov;ctx.save();c
   else{ctx.beginPath();ctx.arc(X,Y,r,0,7);ctx.stroke()}}
  ctx.restore()}
 function zSym(X,Y,r,pos,c){ctx.strokeStyle=c;ctx.lineWidth=1.6;ctx.beginPath();ctx.arc(X,Y,r,0,7);ctx.stroke();if(pos){const d=r*.62;ctx.beginPath();ctx.moveTo(X-d,Y-d);ctx.lineTo(X+d,Y+d);ctx.moveTo(X+d,Y-d);ctx.lineTo(X-d,Y+d);ctx.stroke()}else{ctx.fillStyle=c;ctx.beginPath();ctx.arc(X,Y,r*.28,0,7);ctx.fill()}}
-function drawLoad(l){const c=css('--neon3'),on=l===selO()||l===hov,ac=css('--acc');ctx.save();
+function drawLoad(l){const c=css('--neon3'),on=isSel(l)||l===hov,ac=css('--acc');ctx.save();
+ if(l.kind=='bolt'){const s=M.shapes.find(q=>q.id===l.sid);if(!s){ctx.restore();return}const c0=s.circ?s.c:polyCen(shapePts(s)),X=sx(c0[0]),Y=sy(c0[1]),rp=(s.circ?s.r:Math.sqrt(Math.abs(polyArea(shapePts(s)))/Math.PI))*S,F=Math.hypot(l.fx||0,l.fy||0);
+  if(on){ctx.fillStyle=ac;ctx.globalAlpha=.18;ctx.beginPath();ctx.arc(X,Y,Math.max(rp,8)+6,0,7);ctx.fill();ctx.globalAlpha=1}
+  if(F>0){const ux=(l.fx||0)/F,uy=-(l.fy||0)/F,a=Math.atan2(uy,ux);ctx.strokeStyle=ac;ctx.lineWidth=on?4:3;ctx.globalAlpha=.85;ctx.beginPath();ctx.arc(X,Y,Math.max(rp,3),a-Math.PI/2,a+Math.PI/2);ctx.stroke();ctx.globalAlpha=1;
+   const L=Math.max(30,rp+26);arrowP(X,Y,X+ux*L,Y+uy*L,ac,on?3.2:2.2,10);ctx.fillStyle=ac;ctx.beginPath();ctx.arc(X,Y,2.6,0,7);ctx.fill();pill(X+ux*(L+14),Y+uy*(L+14),f3(F*AF('R'))+' kN',{c:ac,fs:10.5})}
+  if(l.P){zSym(X,Y,Math.max(5,Math.min(rp*.7,9)),l.P>=0,c);pill(X+12,Y+16,'P '+f3(Math.abs(l.P)*AF('R'))+' kN'+(l.P<0?' ↑':''),{c,al:'l',fs:10.5})}
+  ctx.restore();return}
  if(l.kind=='pt'){const X=sx(l.p[0]),Y=sy(l.p[1]);if(on){ctx.fillStyle=c;ctx.globalAlpha=.25;ctx.beginPath();ctx.arc(X,Y,14,0,7);ctx.fill();ctx.globalAlpha=1}zSym(X,Y,9,l.P>=0,c);pill(X+14,Y-16,f3(Math.abs(l.P)*AF('R'))+' kN'+(l.P<0?' ↑':''),{c,al:'l'})}
  else if(l.kind=='line'){const[a,b]=l.pts,A=[sx(a[0]),sy(a[1])],B=[sx(b[0]),sy(b[1])],L=Math.hypot(B[0]-A[0],B[1]-A[1]),n=Math.max(1,Math.floor(L/24));ctx.strokeStyle=c;ctx.lineWidth=on?4:2.4;ctx.beginPath();ctx.moveTo(...A);ctx.lineTo(...B);ctx.stroke();
   for(let i=0;i<=n;i++){const t=i/n;zSym(A[0]+t*(B[0]-A[0]),A[1]+t*(B[1]-A[1]),5,l.p>=0,c)}const nx=-(B[1]-A[1])/(L||1),ny=(B[0]-A[0])/(L||1);pill((A[0]+B[0])/2+nx*16,(A[1]+B[1])/2+ny*16,f3(Math.abs(l.p)*AF('R'))+' kN/m'+(l.p<0?' ↑':''),{c})}
@@ -796,11 +892,29 @@ function drawLoad(l){const c=css('--neon3'),on=l===selO()||l===hov,ac=css('--acc
   ctx.strokeStyle=ac;ctx.lineWidth=on?3:1.6;ctx.beginPath();ctx.moveTo(A[0]-ux*len,A[1]-uy*len);ctx.lineTo(B[0]-ux*len,B[1]-uy*len);ctx.stroke();for(let i=0;i<=n;i++){const t=i/n,x=A[0]+t*(B[0]-A[0]),y=A[1]+t*(B[1]-A[1]);arrowP(x-ux*len,y-uy*len,x-ux*2,y-uy*2,ac,1.4,6)}
   pill((A[0]+B[0])/2-ux*(len+14),(A[1]+B[1])/2-uy*(len+14),f3(m*AF('R'))+' kN/m',{c:ac})}
  ctx.restore()}
+/* v1.4 rigid zones: hatched, with their loads and restraints at the reference point */
+function rigOf(r){return(M.rigs||[]).indexOf(r)}
+function drawRig(r){const P=rigPts(M,r),ref=rigRef(M,r);if(!P||!ref)return;const mem=css('--mem'),ac=css('--acc'),n3=css('--neon3'),on=isSel(r)||r===hov,f=r.fix||{};ctx.save();
+ pathPoly(P);ctx.fillStyle=mem;ctx.globalAlpha=on?.55:.38;ctx.fill();ctx.globalAlpha=1;ctx.save();pathPoly(P);ctx.clip();ctx.strokeStyle=css('--panel');ctx.globalAlpha=.55;ctx.lineWidth=1;const xs=P.map(p=>sx(p[0])),ys=P.map(p=>sy(p[1])),x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);ctx.beginPath();for(let d=x0-(y1-y0);d<x1;d+=6){ctx.moveTo(d,y1);ctx.lineTo(d+(y1-y0),y0)}ctx.stroke();ctx.restore();
+ pathPoly(P);ctx.strokeStyle=on?ac:mem;ctx.lineWidth=on?2.6:1.6;ctx.stroke();
+ const X=sx(ref[0]),Y=sy(ref[1]);ctx.strokeStyle=css('--ink');ctx.lineWidth=1.3;ctx.beginPath();ctx.moveTo(X-5,Y);ctx.lineTo(X+5,Y);ctx.moveTo(X,Y-5);ctx.lineTo(X,Y+5);ctx.stroke();
+ const fx=+r.fx||0,fy=+r.fy||0,F=Math.hypot(fx,fy),k=AF('R');
+ if(F>0){const ux=fx/F,uy=-fy/F,L=46;arrowP(X,Y,X+ux*L,Y+uy*L,ac,on?3.2:2.4,10);pill(X+ux*(L+14),Y+uy*(L+14),f3(F*k)+' kN',{c:ac,fs:10.5})}
+ if(r.mz){const rr=18,a0=-.9,a1=Math.PI+.9,cw=r.mz<0;ctx.strokeStyle=ac;ctx.lineWidth=2;ctx.beginPath();ctx.arc(X,Y,rr,a0,a1,false);ctx.stroke();const ae=cw?a0:a1,ex=X+rr*Math.cos(ae),ey=Y+rr*Math.sin(ae),tg=cw?1:-1;
+  ctx.fillStyle=ac;ctx.beginPath();const tx=-Math.sin(ae)*tg,ty=Math.cos(ae)*tg;ctx.moveTo(ex+tx*7,ey+ty*7);ctx.lineTo(ex-ty*4,ey+tx*4);ctx.lineTo(ex+ty*4,ey-tx*4);ctx.closePath();ctx.fill();pill(X,Y-rr-12,'Mz '+f3(r.mz*k)+' kNm',{c:ac,fs:10.5})}
+ const ob=[];if(r.P)ob.push('P '+f3(r.P*k)+' kN');if(r.tx)ob.push('Tx '+f3(r.tx*k));if(r.ty)ob.push('Ty '+f3(r.ty*k));if(ob.length){if(r.P)zSym(X,Y,7,r.P>=0,n3);pill(X+12,Y+18,ob.join(' · ')+(r.tx||r.ty?' kNm':''),{c:n3,al:'l',fs:10.5})}
+ const fx_=['u','v','rz','w','rx','ry'].filter(q=>f[q]);if(fx_.length){const c=css('--neon2');ctx.fillStyle=c;ctx.strokeStyle=c;ctx.globalAlpha=.9;ctx.beginPath();ctx.moveTo(X,Y+3);ctx.lineTo(X-8,Y+15);ctx.lineTo(X+8,Y+15);ctx.closePath();ctx.fill();ctx.globalAlpha=1;ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(X-11,Y+18);ctx.lineTo(X+11,Y+18);ctx.stroke();
+  if(f.rz||f.rx||f.ry)for(let q=-10;q<=8;q+=4.5){ctx.beginPath();ctx.moveTo(X+q,Y+18);ctx.lineTo(X+q-3,Y+22);ctx.lineWidth=1;ctx.stroke()}}
+ ctx.restore()}
+function rigReaction(j){if(!R||R.empty||!R.rigInfo||!R.rigInfo[j])return null;const I=R.rigInfo[j],o={x:0,y:0,mz:0,z:0,tx:0,ty:0,any:false,n:I.nodes.length};const mB=I.mB,mM=I.mM;
+ if(sysOK('M')&&R.Mm.R){o.x=R.Mm.R[mM]||0;o.y=R.Mm.R[mM+1]||0;o.mz=R.Mm.R[mM+2]||0}if(sysOK('B')&&R.B.R){o.z=-(R.B.R[mB]||0);o.tx=R.B.R[mB+1]||0;o.ty=R.B.R[mB+2]||0}
+ const f=(M.rigs[j]||{}).fix||{};o.any=Object.values(f).some(Boolean);return o}
+function drawRigReac(){(M.rigs||[]).forEach((r,j)=>{const o=rigReaction(j);if(!o||!o.any)return;const ref=rigRef(M,r);if(!ref)return;const t=[],k=AF('R');if(sysOK('M')&&(Math.abs(o.x)+Math.abs(o.y)+Math.abs(o.mz))>1e-9)t.push('Rx '+f3(o.x*k)+', Ry '+f3(o.y*k)+' kN'+(Math.abs(o.mz)>1e-9?', Mz '+f3(o.mz*k)+' kNm':''));if(sysOK('B')&&Math.abs(o.z)>1e-9)t.push('R '+f3(o.z*k)+' kN');if(t.length)pill(sx(ref[0]),sy(ref[1])+34,t.join(' · '),{c:css('--neon2'),fs:10.5})})}
 /* ---------- section cut on the canvas ---------- */
 const CUTQ={w:['w','mm',1e3,'B'],Mn:['Mn','kNm/m',1,'B'],Mt:['Mt','kNm/m',1,'B'],Mnt:['Mnt','kNm/m',1,'B'],Qn:['Qn','kN/m',1,'B'],Nn:['Nn','kN/m',1,'M'],Nt:['Nt','kN/m',1,'M'],Nnt:['Nnt','kN/m',1,'M'],sn:['σn','MPa',1e-3,'M'],st:['σt','MPa',1e-3,'M'],snt:['τnt','MPa',1e-3,'M'],un:['un','mm',1e3,'M'],ut:['ut','mm',1e3,'M']};
 function cutData(c){if(!R||R.empty)return null;const k=R.ms+'|'+O.avg+'|'+c.a+'|'+c.b;if(c._k!==k||!c._d){c._d=cutSample(R,c.a,c.b,O.avg);c._k=k}return c._d}
 function cutName(c){return'S'+(M.cuts.indexOf(c)+1)}
-function drawCut(c){const n3=css('--neon3'),on=c===selO()||c===hov||c===sideCut,A=[sx(c.a[0]),sy(c.a[1])],B=[sx(c.b[0]),sy(c.b[1])];
+function drawCut(c){const n3=css('--neon3'),on=isSel(c)||c===hov||c===sideCut,A=[sx(c.a[0]),sy(c.a[1])],B=[sx(c.b[0]),sy(c.b[1])];
  const q=c.q||(sysOK('B')?'Mn':'Nn'),d=sysOK(CUTQ[q][3])?cutData(c):null;
  if(d){const P=d.P,qq=CUTQ[q];let mx=0;P.forEach(p=>{if(p.in)mx=Math.max(mx,Math.abs(p[q]))});if(mx>0){const sc=55*O.cutS/mx*AF('S'),[nx,ny]=[d.n[0],-d.n[1]];ctx.save();ctx.fillStyle=n3;ctx.strokeStyle=n3;
   let seg=[];const flush=()=>{if(seg.length>1){ctx.globalAlpha=.16;ctx.beginPath();ctx.moveTo(seg[0][0],seg[0][1]);seg.forEach(s=>ctx.lineTo(s[2],s[3]));ctx.lineTo(seg[seg.length-1][0],seg[seg.length-1][1]);ctx.closePath();ctx.fill();ctx.globalAlpha=.95;ctx.lineWidth=1.8;ctx.beginPath();seg.forEach((s,i)=>i?ctx.lineTo(s[2],s[3]):ctx.moveTo(s[2],s[3]));ctx.stroke()}seg=[]};
@@ -834,31 +948,31 @@ function drawReactions(){if(!R||R.empty)return;M.sups.forEach((s,i)=>{const o=su
  let X=sx(p[0]),Y=sy(p[1]);if(s.type=='line'){const[nx,ny]=outSide(s.pts[0],s.pts[1]);X+=nx*30;Y+=ny*30}else Y+=34;pill(X,Y,t.join(' · '),{c:css('--neon2'),fs:10.5})})}
 function drawNN(){if(!R||R.empty)return;const N=R.mesh.nodes;if(N.length>2500)return;ctx.save();ctx.font='9px ui-monospace,monospace';ctx.fillStyle=css('--mut');ctx.textAlign='left';N.forEach((p,i)=>ctx.fillText(i+1,sx(p.x)+2,sy(p.y)-2));ctx.restore()}
 /* ---------- annotations ---------- */
-function drawAnn(a){const c=a.c||css('--neon2'),on=a===selO()||a===hov;ctx.save();ctx.strokeStyle=c;ctx.fillStyle=c;ctx.lineWidth=on?2.4:1.5;
+function drawAnn(a){const c=a.c||css('--neon2'),on=isSel(a)||a===hov;ctx.save();ctx.strokeStyle=c;ctx.fillStyle=c;ctx.lineWidth=on?2.4:1.5;
  if(a.k=='text'){const X=sx(a.pts[0][0]),Y=sy(a.pts[0][1]),fs=a.fs||12;ctx.font='500 '+fs+'px system-ui,sans-serif';const L=String(a.t||'').split('\n'),w=Math.max(...L.map(l=>ctx.measureText(l).width))+14,h=L.length*fs*1.35+8;
   ctx.fillStyle=css('--panel');ctx.globalAlpha=.9;ctx.beginPath();ctx.roundRect(X,Y,w,h,7);ctx.fill();ctx.globalAlpha=1;ctx.strokeStyle=on?css('--acc'):'color-mix(in srgb,'+c+' 60%,transparent)';ctx.lineWidth=1;ctx.stroke();ctx.fillStyle=css('--ink');ctx.textBaseline='top';L.forEach((l,i)=>ctx.fillText(l,X+7,Y+5+i*fs*1.35));a._bb=[X,Y,w,h]}
  else if(a.k=='arrow'){const[p,q]=a.pts;arrowP(sx(p[0]),sy(p[1]),sx(q[0]),sy(q[1]),c,on?2.4:1.6,10)}
  else if(a.k=='box'){const[p,q]=a.pts;ctx.setLineDash([5,3]);ctx.strokeRect(Math.min(sx(p[0]),sx(q[0])),Math.min(sy(p[1]),sy(q[1])),Math.abs(sx(q[0])-sx(p[0])),Math.abs(sy(q[1])-sy(p[1])));ctx.setLineDash([])}
  else if(a.k=='dim'){const[p,q]=a.pts,o=(a.off||0)*S,P=[sx(p[0]),sy(p[1])],Q=[sx(q[0]),sy(q[1])],L=Math.hypot(Q[0]-P[0],Q[1]-P[1])||1,nx=-(Q[1]-P[1])/L,ny=(Q[0]-P[0])/L,A=[P[0]+nx*o,P[1]+ny*o],B=[Q[0]+nx*o,Q[1]+ny*o];
   ctx.lineWidth=1;ctx.globalAlpha=.6;ctx.beginPath();ctx.moveTo(...P);ctx.lineTo(A[0]+nx*Math.sign(o||1)*5,A[1]+ny*Math.sign(o||1)*5);ctx.moveTo(...Q);ctx.lineTo(B[0]+nx*Math.sign(o||1)*5,B[1]+ny*Math.sign(o||1)*5);ctx.stroke();ctx.globalAlpha=1;ctx.lineWidth=on?2:1.3;
-  arrowP((A[0]+B[0])/2,(A[1]+B[1])/2,A[0],A[1],c,ctx.lineWidth,7);arrowP((A[0]+B[0])/2,(A[1]+B[1])/2,B[0],B[1],c,ctx.lineWidth,7);pill((A[0]+B[0])/2,(A[1]+B[1])/2,fm(dist(p,q))+' m',{c,fs:10.5})}
+  arrowP((A[0]+B[0])/2,(A[1]+B[1])/2,A[0],A[1],c,ctx.lineWidth,7);arrowP((A[0]+B[0])/2,(A[1]+B[1])/2,B[0],B[1],c,ctx.lineWidth,7);pill((A[0]+B[0])/2,(A[1]+B[1])/2,fL(dist(p,q)),{c,fs:10.5})}
  ctx.restore()}
 /* ---------- selection & previews ---------- */
 const selO=()=>sel&&sel.o;
-function handles(o){if(!o)return[];if(o.kind=='plate'||o.kind=='hole'){if(o.circ)return[o.c,[o.c[0]+o.r,o.c[1]]];return o.pts}if(o.type=='pt'||o.kind=='pt'||o.kind=='force')return[o.p];if(o.a&&o.b)return[o.a,o.b];if(o.pts&&!o.sid&&!o.all)return o.pts;return[]}
-function drawSel(){const o=selO();if(!o)return;ctx.save();ctx.fillStyle=css('--panel');ctx.strokeStyle=css('--acc');ctx.lineWidth=2;handles(o).forEach(p=>{ctx.beginPath();ctx.rect(sx(p[0])-4.5,sy(p[1])-4.5,9,9);ctx.fill();ctx.stroke()});ctx.restore()}
+function handles(o){if(!o)return[];if(o.rig){if(o.sid!=null)return[];if(o.circ)return[o.c,[o.c[0]+o.r,o.c[1]]];return o.pts||[]}if(o.kind=='plate'||o.kind=='hole'){if(o.circ)return[o.c,[o.c[0]+o.r,o.c[1]]];return o.pts}if(o.type=='pt'||o.kind=='pt'||o.kind=='force')return[o.p];if(o.a&&o.b)return[o.a,o.b];if(o.pts&&!o.sid&&!o.all)return o.pts;return[]}
+function drawSel(){if(sel&&sel.set){const b=selBox();if(b){ctx.save();ctx.strokeStyle=css('--acc');ctx.setLineDash([5,4]);ctx.lineWidth=1.3;ctx.strokeRect(b[0]-6,b[1]-6,b[2]-b[0]+12,b[3]-b[1]+12);ctx.restore()}}const o=selO();if(!o)return;ctx.save();ctx.fillStyle=css('--panel');ctx.strokeStyle=css('--acc');ctx.lineWidth=2;handles(o).forEach(p=>{ctx.beginPath();ctx.rect(sx(p[0])-4.5,sy(p[1])-4.5,9,9);ctx.fill();ctx.stroke()});ctx.restore()}
 function drawPreview(){if(!mouse)return;const acc=css('--acc'),p=mouse.w;ctx.save();ctx.strokeStyle=acc;ctx.fillStyle=acc;
  if(mouse.snap&&mouse.snap.k&&mouse.snap.k!='grid'&&tool!='sel'){ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(sx(p[0]),sy(p[1]),6,0,7);ctx.stroke()}
  else if(tool!='sel'&&tool!='del'){ctx.globalAlpha=.7;ctx.beginPath();ctx.arc(sx(p[0]),sy(p[1]),2.5,0,7);ctx.fill();ctx.globalAlpha=1}
  if(poly){ctx.lineWidth=1.6;ctx.setLineDash([5,4]);ctx.beginPath();poly.forEach((q,i)=>i?ctx.lineTo(sx(q[0]),sy(q[1])):ctx.moveTo(sx(q[0]),sy(q[1])));ctx.lineTo(sx(p[0]),sy(p[1]));ctx.stroke();ctx.setLineDash([]);poly.forEach(q=>{ctx.beginPath();ctx.arc(sx(q[0]),sy(q[1]),3.5,0,7);ctx.fill()})}
  if(drag&&drag.t=='draw'){const a=drag.a,b=drag.b;ctx.lineWidth=1.8;ctx.setLineDash([5,4]);
-  if(drag.mode=='rect'){ctx.strokeRect(Math.min(sx(a[0]),sx(b[0])),Math.min(sy(a[1]),sy(b[1])),Math.abs(sx(b[0])-sx(a[0])),Math.abs(sy(b[1])-sy(a[1])));pill((sx(a[0])+sx(b[0]))/2,Math.min(sy(a[1]),sy(b[1]))-12,fm(Math.abs(b[0]-a[0]))+' × '+fm(Math.abs(b[1]-a[1]))+' m',{})}
-  else if(drag.mode=='circ'){const r=dist(a,b);ctx.beginPath();ctx.arc(sx(a[0]),sy(a[1]),r*S,0,7);ctx.stroke();pill(sx(a[0]),sy(a[1])-r*S-12,'r = '+fm(r)+' m',{})}
-  else{ctx.beginPath();ctx.moveTo(sx(a[0]),sy(a[1]));ctx.lineTo(sx(b[0]),sy(b[1]));ctx.stroke();pill((sx(a[0])+sx(b[0]))/2,(sy(a[1])+sy(b[1]))/2-12,fm(dist(a,b))+' m',{})}ctx.setLineDash([])}
- if(tool=='sel'&&drag&&drag.t=='pan'){}
+  if(drag.mode=='rect'){ctx.strokeRect(Math.min(sx(a[0]),sx(b[0])),Math.min(sy(a[1]),sy(b[1])),Math.abs(sx(b[0])-sx(a[0])),Math.abs(sy(b[1])-sy(a[1])));pill((sx(a[0])+sx(b[0]))/2,Math.min(sy(a[1]),sy(b[1]))-12,(lenMM()?fmm(Math.abs(b[0]-a[0])*1e3)+' × '+fmm(Math.abs(b[1]-a[1])*1e3)+' mm':fm(Math.abs(b[0]-a[0]))+' × '+fm(Math.abs(b[1]-a[1]))+' m'),{})}
+  else if(drag.mode=='circ'){const r=dist(a,b);ctx.beginPath();ctx.arc(sx(a[0]),sy(a[1]),r*S,0,7);ctx.stroke();pill(sx(a[0]),sy(a[1])-r*S-12,'Ø '+fL(2*r),{})}
+  else{ctx.beginPath();ctx.moveTo(sx(a[0]),sy(a[1]));ctx.lineTo(sx(b[0]),sy(b[1]));ctx.stroke();pill((sx(a[0])+sx(b[0]))/2,(sy(a[1])+sy(b[1]))/2-12,fL(dist(a,b)),{})}ctx.setLineDash([])}
+ if(drag&&drag.t=='box'){const x0=Math.min(drag.p0[0],drag.p1[0]),y0=Math.min(drag.p0[1],drag.p1[1]),w=Math.abs(drag.p1[0]-drag.p0[0]),h=Math.abs(drag.p1[1]-drag.p0[1]);ctx.setLineDash([5,4]);ctx.lineWidth=1.4;ctx.strokeStyle=drag.del?'#ff3d5a':acc;ctx.fillStyle=drag.del?'#ff3d5a':acc;ctx.globalAlpha=.08;ctx.fillRect(x0,y0,w,h);ctx.globalAlpha=1;ctx.strokeRect(x0,y0,w,h);ctx.setLineDash([])}
  ctx.restore()}
 /* ---------- legend ---------- */
-function legend(){const e=$('lgd'),rg=O.field!='none'&&R&&!R.empty&&sysOK(FLD[O.field]&&FLD[O.field].s)?fieldRange():null;if(!rg||!O.con){e.hidden=true;return}e.hidden=false;const F=FLD[O.field];$('lgN').textContent=F.lab;if(typeof descUpdate=='function')descUpdate();$('lgU').textContent=F.u+(O.avg?' · averaged':' · unaveraged');
+function legend(){const e=$('lgd'),rg=O.field!='none'&&R&&!R.empty&&sysOK(FLD[O.field]&&FLD[O.field].s)?fieldRange():null;if(!rg||!O.con){e.hidden=true;return}e.hidden=false;const F=FLD[O.field];$('lgN').innerHTML=F.lab.replace(/[α-ω]/g,m=>'<span style="text-transform:none">'+m+'</span>');if(typeof descUpdate=='function')descUpdate();$('lgU').textContent=F.u+(O.avg?' · averaged':' · unaveraged');
  const c=$('lgC'),w=c.clientWidth||230,h=46;if(c.width!==Math.round(w*DPR)){c.width=Math.round(w*DPR);c.height=Math.round(h*DPR)}const g=c.getContext('2d');g.setTransform(DPR,0,0,DPR,0,0);g.clearRect(0,0,w,h);const nb=O.bands>0?O.bands:64;
  for(let i=0;i<nb;i++){const C=lerpC(rg.P,(i+.5)/nb);g.fillStyle='rgb('+C.map(Math.round)+')';g.fillRect(4+i*(w-8)/nb,4,(w-8)/nb+.6,14)}g.strokeStyle=css('--line');g.strokeRect(4.5,4.5,w-9,13);
  g.fillStyle=css('--ink');g.font='10.5px ui-monospace,monospace';g.textBaseline='top';const tk=[0,.25,.5,.75,1];tk.forEach(t=>{const v=vOf(t,rg)*F.f;g.textAlign=t==0?'left':t==1?'right':'center';g.fillText(f3(v),4+t*(w-8),24)});
@@ -879,11 +993,16 @@ function hitAt(px,py){const x=wx(px),y=wy(py),tol=8/S,c=[];
  for(const o of[...M.loads,...M.sups])if(o._tag){const[X,Y,w,h]=o._tag;if(px>=X-2&&px<=X+w+2&&py>=Y-2&&py<=Y+h+2)return{k:o.kind?'load':'sup',o}}const dSeg=(a,b)=>segClosest(x,y,a[0],a[1],b[0],b[1]).d;
  M.anns.forEach(a=>{if(a.k=='text'&&a._bb){const[X,Y,w,h]=a._bb;if(px>=X&&px<=X+w&&py>=Y&&py<=Y+h)c.push([0,{k:'ann',o:a}])}else if(a.pts&&a.pts.length==2){const d=a.k=='box'?Math.min(...[[0,0,1,0],[1,0,1,1],[1,1,0,1],[0,1,0,0]].map(([i,j,k,l])=>dSeg([a.pts[i][0],a.pts[j][1]],[a.pts[k][0],a.pts[l][1]]))):dSeg(a.pts[0],a.pts[1]);if(d<tol)c.push([d*.5,{k:'ann',o:a}])}});
  M.cuts.forEach(o=>{const d=dSeg(o.a,o.b);if(d<tol)c.push([d*.6,{k:'cut',o}])});
- M.loads.forEach(o=>{if(o.kind=='pt'||o.kind=='force'){const d=dist([x,y],o.p);if(d<1.5*tol)c.push([d*.4,{k:'load',o}])}else if(o.kind!='area'){const d=dSeg(o.pts[0],o.pts[1]);if(d<tol)c.push([d*.7,{k:'load',o}])}});
+ M.loads.forEach(o=>{if(o.kind=='pt'||o.kind=='force'){const d=dist([x,y],o.p);if(d<1.5*tol)c.push([d*.4,{k:'load',o}])}else if(o.kind!='area'&&o.pts){const d=dSeg(o.pts[0],o.pts[1]);if(d<tol)c.push([d*.7,{k:'load',o}])}});
  M.sups.forEach(o=>{if(o.type=='pt'){const d=dist([x,y],o.p);if(d<1.5*tol)c.push([d*.4,{k:'sup',o}])}else if(o.type=='line'){const d=dSeg(o.pts[0],o.pts[1]);if(d<tol)c.push([d*.8,{k:'sup',o}])}});
  (M.mesh.zones||[]).forEach(z=>{const P=z.pts;for(let i=0;i<4;i++){const d=dSeg(P[i],P[(i+1)%4]);if(d<tol)c.push([d*.9,{k:'zone',o:z}])}});
  M.shapes.forEach(s=>{const P=shapePts(s);for(let i=0;i<P.length;i++){const d=dSeg(P[i],P[(i+1)%P.length]);if(d<tol)c.push([d,{k:'shape',o:s,edge:i}])}});
+ (M.rigs||[]).forEach(r=>{if(r.sid!=null)return;const P=rigPts(M,r);if(!P)return;for(let i=0;i<P.length;i++){const d=dSeg(P[i],P[(i+1)%P.length]);if(d<tol)c.push([d*.85,{k:'rig',o:r}])}});
+ M.loads.forEach(o=>{if(o.kind!='bolt')return;const s=M.shapes.find(q=>q.id===o.sid);if(!s)return;const c0=s.circ?s.c:polyCen(shapePts(s)),F=Math.hypot(o.fx||0,o.fy||0);if(F>0){const L=48/S,d=dSeg(c0,[c0[0]+(o.fx||0)/F*L,c0[1]+(o.fy||0)/F*L]);if(d<tol)c.push([d*.5,{k:'load',o}])}});
  if(c.length){c.sort((a,b)=>a[0]-b[0]);return c[0][1]}
+ /* inside an opening that carries a rigid zone or a bolt: pick that first (its outline still picks the opening) */
+ for(let i=M.shapes.length-1;i>=0;i--){const s=M.shapes[i];if(s.kind!='hole'||!pip(x,y,shapePts(s)))continue;const r=(M.rigs||[]).find(q=>q.sid===s.id);if(r)return{k:'rig',o:r};const b=M.loads.find(q=>q.kind=='bolt'&&q.sid===s.id);if(b)return{k:'load',o:b}}
+ for(const r of M.rigs||[])if(r.sid==null){const P=rigPts(M,r);if(P&&pip(x,y,P))return{k:'rig',o:r}}
  /* inside: area loads / ground regions (only explicit regions), then openings, then plates */
  for(const o of M.loads)if(o.kind=='area'&&!o.all&&!o.sid&&pip(x,y,o.pts))return{k:'load',o};
  for(const o of M.sups)if(o.type=='area'&&!o.all&&!o.sid&&pip(x,y,o.pts))return{k:'sup',o};
@@ -892,10 +1011,10 @@ function hitAt(px,py){const x=wx(px),y=wy(py),tol=8/S,c=[];
 function hitHandle(px,py){const o=selO();if(!o)return-1;const H=handles(o);for(let i=0;i<H.length;i++)if(Math.abs(sx(H[i][0])-px)<7&&Math.abs(sy(H[i][1])-py)<7)return i;return-1}
 function plateAt(x,y){for(let i=M.shapes.length-1;i>=0;i--){const s=M.shapes[i];if(s.kind=='plate'&&pip(x,y,shapePts(s)))return s}return null}
 /* ---------- model edits ---------- */
-function rmObj(o){['shapes','sups','loads','anns','cuts'].forEach(k=>{const i=M[k].indexOf(o);if(i>=0)M[k].splice(i,1)});const z=M.mesh.zones.indexOf(o);if(z>=0)M.mesh.zones.splice(z,1);
- if(o.kind=='plate'||o.kind=='hole'){M.loads=M.loads.filter(l=>l.sid!==o.id);M.sups=M.sups.filter(s=>s.sid!==o.id)}if(o===sideCut)sideOpen(null)}
+function rmObj(o){['shapes','sups','loads','anns','cuts','rigs'].forEach(k=>{const i=(M[k]||[]).indexOf(o);if(i>=0)M[k].splice(i,1)});const z=M.mesh.zones.indexOf(o);if(z>=0)M.mesh.zones.splice(z,1);
+ if(o.kind=='plate'||o.kind=='hole'){M.loads=M.loads.filter(l=>l.sid!==o.id);M.sups=M.sups.filter(s=>s.sid!==o.id);M.rigs=(M.rigs||[]).filter(r=>r.sid!==o.id)}if(o===sideCut)sideOpen(null)}
 function moveObj(o,dx,dy,src){const mv=p=>[p[0]+dx,p[1]+dy];if(o.circ){o.c=mv(src.c)}else if(o.pts&&src.pts)o.pts=src.pts.map(mv);if(o.p)o.p=mv(src.p);if(o.a){o.a=mv(src.a);o.b=mv(src.b)}}
-function setHandle(o,i,p,src,shift){if(o.circ){if(i==0)o.c=p;else o.r=Math.max(.05,dist(o.c,p));return}
+function setHandle(o,i,p,src,shift){if(o.circ){if(i==0)o.c=p;else o.r=Math.max(.0005,dist(o.c,p));return}
  if(o.rect&&o.pts){const P=src.pts.map(q=>q.slice()),j=(i+2)%4;const x0=Math.min(p[0],P[j][0]),x1=Math.max(p[0],P[j][0]),y0=Math.min(p[1],P[j][1]),y1=Math.max(p[1],P[j][1]);if(x1-x0>1e-3&&y1-y0>1e-3)o.pts=[[x0,y0],[x1,y0],[x1,y1],[x0,y1]];return}
  if(o.p){o.p=p;return}if(o.a&&o.b){if(i==0)o.a=p;else o.b=p;return}if(o.pts){o.pts=o.pts.slice();o.pts[i]=p}}
 const rectPts=(a,b)=>{const x0=Math.min(a[0],b[0]),x1=Math.max(a[0],b[0]),y0=Math.min(a[1],b[1]),y1=Math.max(a[1],b[1]);return[[x0,y0],[x1,y0],[x1,y1],[x0,y1]]};
@@ -915,6 +1034,8 @@ const TOOLS=[
 ['pt','Point load','<circle cx="12" cy="12" r="7"/><path d="M7 7l10 10M17 7L7 17"/>','p'],
 ['force','Force','<path d="M3 12h14M12 7l5 5-5 5"/><circle cx="20" cy="12" r="1.5"/>','i','In-plane loads'],
 ['trac','Edge traction','<path d="M4 4v16"/><path d="M20 7H8M12 4L8 7l4 3M20 17H8M12 14l-4 3 4 3" stroke-width="1.4"/>','t'],
+['bolt','Bolts','<circle cx="8" cy="8" r="3.2"/><circle cx="16" cy="8" r="3.2"/><circle cx="8" cy="16" r="3.2"/><circle cx="16" cy="16" r="3.2"/><path d="M8 3v10M8 13l-2-2.5M8 13l2-2.5" stroke-width="1.2"/>','h','Connections'],
+['rigid','Rigid zone','<rect x="4" y="5" width="16" height="14" rx="1" fill="currentColor" fill-opacity=".35"/><path d="M4 11l6-6M4 17l12-12M8 19l12-12M14 19l6-6" stroke-width="1.1"/><circle cx="12" cy="12" r="2" fill="currentColor"/>','j'],
 ['cut','Section cut','<path d="M3 20L21 4" stroke-dasharray="4 2 1 2"/><path d="M5 12l3 3M14 4l3 3"/>','s','Interrogate'],
 ['elem','Element','<path d="M5 6l13-1 1 13-14 1z"/><circle cx="11" cy="12" r="2.2" fill="currentColor"/><path d="M5 6l6 6M18 5l-7 7M19 18l-8-6M5 19l6-7" stroke-width="1" stroke-dasharray="2 2"/>','e'],
 ['text','Text note','<path d="M5 6V4h14v2M12 4v16M9 20h6"/>','n','Annotate'],
@@ -922,36 +1043,53 @@ const TOOLS=[
 ['dim','Dimension','<path d="M4 7v10M20 7v10M4 12h16M7 10l-3 2 3 2M17 10l3 2-3 2"/>','d'],
 ['box','Box','<rect x="4" y="6" width="16" height="12" rx="1" stroke-dasharray="3 2"/>','b'],
 ['del','Delete','<path d="M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13"/>','x']];
-const HINT={sel:'Click to select an item and edit it in the pop-up; drag it to move it or drag its square handles to reshape it. Drag empty space or right-drag to pan, scroll to zoom.',
+const HINT={sel:'Click to select an item and edit it in the pop-up; drag it to move it or drag its square handles to reshape it. Shift-click to add to the selection, drag a box over empty space to select a group (Shift adds), then drag any selected item to move the group. Ctrl+A selects all, Ctrl+C / V copy and paste at the cursor, Ctrl+D duplicates, arrow keys nudge, Del deletes. Right-drag to pan, scroll to zoom.',
+ bolt:'Click to place a bolt, or a group of bolts (rows × columns at the pitch and gauge in the flyout) centred on the click: each makes a hole and, as chosen, a bearing load, a loaded rigid bolt or a fixed bolt (a support). Click an existing round opening to put a bolt in it.',
+ rigid:'Click an opening to make it rigid (a bolt, pin or welded insert that moves as one body), or drag a rectangle or circle over the plate for a rigid patch (a column footprint, a stiffened area). Loads and restraints act at its centre.',
  plate:'Draw a plate: drag a rectangle, click corners for a polygon (click the first point or press Enter to close), or drag from the centre for a circle. Several plates join into one.',
  hole:'Draw an opening through the plate, the same way as a plate.',zone:'Drag a rectangle where the mesh should be finer (stress concentrations, columns, openings). The finer spacing runs across the whole plate in that band.',
  lsup:'Drag a line anywhere: along an edge, or across the plate for a wall or beam line under it (drawn as a hatched band). Click an edge to support all of it, or Shift-click a plate for its whole outline. Sloping lines pull the mesh onto them. Choose the type in the flyout.',
  psup:'Click to place a column or point support. It snaps to the nearest mesh node.',gnd:'Click a plate for elastic ground under all of it, or drag a rectangle for a patch (Winkler springs, kN/m³).',
  area:'Click a plate to load all of it, or drag a rectangle for a patch load. Pressure is positive in the direction of positive deflection (downwards for gravity).',
  line:'Drag a line (or click an edge) for a line load in kN/m, e.g. a wall or balustrade.',pt:'Click to place a point load (kN).',force:'Click to place an in-plane force; drag to set its direction (the magnitude comes from the flyout).',
- trac:'Drag along an edge (or click an edge) to apply an in-plane traction qx, qy in kN/m.',elem:'Click inside an element to interrogate it: the side panel shows its shape functions, how the nodal values are interpolated to the point you clicked, and the strains and moments there. Drag to move the point (it can move into neighbouring elements).',cut:'Drag a line across the plate to cut a section. The side panel plots the results along it and integrates them into the force and moment the section carries.',
- text:'Click to place a text note.',arrow:'Drag to draw an arrow.',dim:'Drag between two points for a dimension.',box:'Drag to draw a box.',del:'Click an item to delete it.'};
-const CHIP={sel:'Select, move, reshape',plate:'Drag, click corners, or drag a circle',hole:'Opening: drag or click corners',zone:'Drag a finer-mesh band',lsup:'Drag a line (edge or wall), or click an edge',psup:'Click to place',gnd:'Click a plate or drag',area:'Click a plate or drag a patch',line:'Drag or click an edge',pt:'Click to place',force:'Click, or drag a direction',trac:'Drag or click an edge',cut:'Drag across the plate',elem:'Click an element, drag the point',text:'Click to place',arrow:'Drag',dim:'Drag',box:'Drag',del:'Click to delete'};
+ trac:'Drag along an edge (or click an edge) to apply an in-plane traction qx, qy in kN/m.',del:'Click an item to delete it, or drag a box to delete everything inside it.',elem:'Click inside an element to interrogate it: the side panel shows its shape functions, how the nodal values are interpolated to the point you clicked, and the strains and moments there. Drag to move the point (it can move into neighbouring elements).',cut:'Drag a line across the plate to cut a section. The side panel plots the results along it and integrates them into the force and moment the section carries.',
+ text:'Click to place a text note.',arrow:'Drag to draw an arrow.',dim:'Drag between two points for a dimension.',box:'Drag to draw a box.'};
+const CHIP={bolt:'Click to place bolts, or click a round opening',rigid:'Click an opening, or drag a patch',sel:'Select, move, reshape · Shift-click / box to group',plate:'Drag, click corners, or drag a circle',hole:'Opening: drag or click corners',zone:'Drag a finer-mesh band',lsup:'Drag a line (edge or wall), or click an edge',psup:'Click to place',gnd:'Click a plate or drag',area:'Click a plate or drag a patch',line:'Drag or click an edge',pt:'Click to place',force:'Click, or drag a direction',trac:'Drag or click an edge',cut:'Drag across the plate',elem:'Click an element, drag the point',text:'Click to place',arrow:'Drag',dim:'Drag',box:'Drag',del:'Click, or drag a box, to delete'};
 const KEY={};TOOLS.forEach(([k,t,ic,key,g])=>{KEY[key]=k;if(g){const h=document.createElement('div');h.className='gh';h.textContent=g;$('tools').appendChild(h)}const b=document.createElement('button');b.id='t_'+k;b.title=t+' ('+key.toUpperCase()+')';b.innerHTML='<svg viewBox="0 0 24 24">'+ic+'</svg><span>'+t+'</span><kbd>'+key.toUpperCase()+'</kbd>';b.onclick=()=>setTool(k);$('tools').appendChild(b)});
-function setTool(k){tool=k;flyShut=null;poly=null;drag=null;if(k!='sel')sel=null;buildPop();syncTools();draw()}
+function setTool(k){tool=k;flyShut=null;poly=null;drag=null;if(k!='sel')sel=null;if(k=='zone'&&TO.zmm/1000>=M.mesh.h*.99)TO.zmm=+(M.mesh.h*250).toPrecision(2);buildPop();syncTools();draw()}
 function syncTools(){TOOLS.forEach(([k])=>$('t_'+k).classList.toggle('on',k===tool));if($('hint'))if($('hint'))$('hint').textContent=HINT[tool]||'';cv.style.cursor=tool=='sel'?'default':'crosshair';syncFly()}
 /* plate properties in the tool bar */
 {const t=$('tools'),h=document.createElement('div');h.className='gh';h.textContent='Plate properties';t.appendChild(h);const d=document.createElement('div');d.className='full';d.innerHTML=
  '<div class="prop"><span>Material</span><select id="pMat" class="w2">'+Object.entries(MATS).map(([k,v])=>'<option value="'+k+'">'+v[0]+'</option>').join('')+'</select>'+
  '<span>Young’s modulus E</span><input type="number" id="pE" step="any" min="0"><i>GPa</i><span>Poisson’s ratio ν</span><input type="number" id="pNu" step="0.01" min="0" max="0.49"><i></i><span>Thickness t</span><input type="number" id="pT" step="any" min="1"><i>mm</i>'+
- '<span>Element size h</span><input type="number" id="pH" step="any" min="20"><i>mm</i><input type="range" id="pHr" class="rng" min="0" max="100" step="1"></div><div class="pnote" id="pNote"></div>';t.appendChild(d)}
-function syncProps(){$('pMat').value=M.mat.pre||'cust';$('pE').value=+(M.mat.E/1e6).toPrecision(4);$('pNu').value=M.mat.nu;$('pT').value=+(M.mat.t*1000).toPrecision(4);$('pH').value=+(M.mesh.h*1000).toPrecision(4);$('pHr').value=Math.round(100*Math.log(M.mesh.h/.02)/Math.log(2/.02));
- const D=M.mat.E*M.mat.t**3/(12*(1-M.mat.nu**2));$('pNote').innerHTML='D = Et³/12(1−ν²) = '+f3(D)+' kNm · '+(R&&!R.empty?R.mesh.els.length+' elements, '+R.mesh.nodes.length+' nodes':'no mesh yet')}
-$('pMat').onchange=()=>{pushU();const m=MATS[$('pMat').value];M.mat.pre=$('pMat').value;if(m[1]){M.mat.E=m[1];M.mat.nu=m[2]}syncProps();update()};
+ '<span>Yield strength fy</span><input type="number" id="pFy" step="any" min="0" placeholder="–"><i>MPa</i>'+
+ '<span>Element size h</span><input type="number" id="pH" step="any" min="0.5"><i>mm</i><input type="range" id="pHr" class="rng" min="0" max="100" step="1">'+
+ '<span>Mesh</span><div class="mfb" style="display:flex;gap:4px;grid-column:2/4"><button id="pHc" title="Double the element size">Coarser</button><button id="pHf" title="Halve the element size">Finer</button></div>'+
+ '<span title="Automatic refinement round every opening and rigid zone: the number of elements round its edge">Refine at openings</span><select id="pRef" style="grid-column:2/4"><option value="0">Off</option><option value="12">12 round each</option><option value="16">16 round each</option><option value="24">24 round each</option><option value="32">32 round each</option><option value="48">48 round each</option></select>'+
+ '<span title="How quickly the elements grow away from a refinement zone or opening">Grading</span><select id="pGr" style="grid-column:2/4"><option value="0">Abrupt (bands)</option><option value="1.2">Gentle ×1.2</option><option value="1.3">Normal ×1.3</option><option value="1.5">Fast ×1.5</option></select></div><div class="pnote" id="pNote"></div>';t.appendChild(d)}
+function syncProps(){$('pMat').value=M.mat.pre||'cust';$('pE').value=+(M.mat.E/1e6).toPrecision(4);$('pNu').value=M.mat.nu;$('pT').value=+(M.mat.t*1000).toPrecision(4);$('pH').value=+(M.mesh.h*1000).toPrecision(4);$('pHr').value=Math.round(100*Math.log(M.mesh.h/.0005)/Math.log(4000));$('pFy').value=M.mat.fy>0?M.mat.fy:'';$('pRef').value=String(M.mesh.ref||0);$('pGr').value=String(M.mesh.gr>1?M.mesh.gr:0);
+ const D=M.mat.E*M.mat.t**3/(12*(1-M.mat.nu**2));$('pNote').innerHTML='D = Et³/12(1−ν²) = '+f3(D)+' kNm · '+(R&&!R.empty?R.mesh.els.length.toLocaleString('en-GB')+' elements, '+R.mesh.nodes.length.toLocaleString('en-GB')+' nodes'+(R.mesh.auto?', refined at '+R.mesh.auto+' opening'+(R.mesh.auto==1?'':'s'):''):'no mesh yet')}
+$('pMat').onchange=()=>{pushU();const m=MATS[$('pMat').value];M.mat.pre=$('pMat').value;if(m[1]){M.mat.E=m[1];M.mat.nu=m[2];M.mat.fy=m[3]||0}syncProps();buildFieldSel();update()};
+$('pFy').onchange=()=>{const v=+$('pFy').value;pushU();M.mat.fy=v>0?v:0;syncProps();update()};
+$('pHc').onclick=()=>{pushU();M.mesh.h=Math.min(5,+(M.mesh.h*2).toPrecision(3));syncProps();update()};$('pHf').onclick=()=>{pushU();M.mesh.h=Math.max(.0005,+(M.mesh.h/2).toPrecision(3));syncProps();update()};
+$('pRef').onchange=()=>{pushU();M.mesh.ref=+$('pRef').value;update()};$('pGr').onchange=()=>{pushU();M.mesh.gr=+$('pGr').value;update()};
 $('pE').onchange=()=>{const v=+$('pE').value;if(v>0){pushU();M.mat.E=v*1e6;M.mat.pre='cust';syncProps();update()}};$('pNu').onchange=()=>{const v=+$('pNu').value;if(v>=0&&v<.5){pushU();M.mat.nu=v;M.mat.pre='cust';syncProps();update()}};
-$('pT').onchange=()=>{const v=+$('pT').value;if(v>0){pushU();M.mat.t=v/1000;syncProps();update()}};$('pH').onchange=()=>{const v=+$('pH').value;if(v>=20){pushU();M.mesh.h=v/1000;syncProps();update()}};
-$('pHr').oninput=()=>{M.mesh.h=+(0.02*Math.pow(100,+$('pHr').value/100)).toPrecision(2);$('pH').value=+(M.mesh.h*1000).toPrecision(3);clearTimeout(pHrT);pHrT=setTimeout(()=>{update();syncProps()},120)};let pHrT=0;$('pHr').onpointerdown=()=>pushU();
+$('pT').onchange=()=>{const v=+$('pT').value;if(v>0){pushU();M.mat.t=v/1000;syncProps();update()}};$('pH').onchange=()=>{const v=+$('pH').value;if(v>=.5){pushU();M.mesh.h=v/1000;syncProps();update()}};
+$('pHr').oninput=()=>{M.mesh.h=+(0.0005*Math.pow(4000,+$('pHr').value/100)).toPrecision(2);$('pH').value=+(M.mesh.h*1000).toPrecision(3);clearTimeout(pHrT);pHrT=setTimeout(()=>{update();syncProps()},120)};let pHrT=0;$('pHr').onpointerdown=()=>pushU();
 /* tool flyouts */
-const FLY={plate:'Plate shape',hole:'Opening shape',zone:'Mesh zone',lsup:'Line support',psup:'Point support',gnd:'Elastic ground',area:'Pressure',line:'Line load',pt:'Point load',force:'In-plane force',trac:'Edge traction'};
+const FLY={bolt:'Bolts',rigid:'Rigid zone',plate:'Plate shape',hole:'Opening shape',zone:'Mesh zone',lsup:'Line support',psup:'Point support',gnd:'Elastic ground',area:'Pressure',line:'Line load',pt:'Point load',force:'In-plane force',trac:'Edge traction'};
 function flyHTML(k){const seg=(key,opts)=>'<div class="seg">'+opts.map(([v,t])=>'<button data-seg="'+key+'" data-v="'+v+'"'+(TO[key]==v?' class="on"':'')+'>'+t+'</button>').join('')+'</div>',num=(key,lab,u,st)=>'<div class="fr"><span>'+lab+'</span><input type="number" data-k="'+key+'" value="'+TO[key]+'" step="'+(st||'any')+'"><i>'+u+'</i></div>';
  const preSel=(key,list)=>'<div class="fr"><span>Type</span><select data-k="'+key+'" class="w2">'+list.map(p=>'<option value="'+p+'"'+(TO[key]==p?' selected':'')+'>'+SUPP[p].lab+'</option>').join('')+'</select></div>';
  if(k=='plate'||k=='hole')return seg('shape',[['rect','Rectangle'],['poly','Polygon'],['circ','Circle']])+'<p class="fh">Polygon: click corners, then click the first point or press Enter. Circle: drag from the centre.</p>';
- if(k=='zone')return num('zh','Element size','m')+'<p class="fh">The finer spacing runs right across the plate in the x and y bands of the zone, so keep zones compact.</p>';
+ if(k=='bolt')return'<div class="fr"><span>Hole Ø d₀</span><input type="number" data-k="bd" value="'+TO.bd+'" step="any" min="1"><i>mm</i></div>'+
+  '<div class="fr"><span>Rows × columns</span><input type="number" data-k="bn" value="'+TO.bn+'" step="1" min="1" max="12" style="width:48px"><input type="number" data-k="bm" value="'+TO.bm+'" step="1" min="1" max="12" style="width:48px"></div>'+
+  (TO.bn>1?num('bp','Pitch p (vertical)','mm'):'')+(TO.bm>1?num('bg','Gauge g (horizontal)','mm'):'')+
+  seg('bact',[['bear','Bearing'],['rig','Rigid'],['fix','Fixed'],['hole','Hole']])+
+  (TO.bact=='bear'||TO.bact=='rig'?num('bfx','Fx per bolt','kN')+num('bfy','Fy per bolt','kN')+num('bP','P per bolt (out of plane)','kN'):'')+
+  '<p class="fh">'+({bear:'Bearing: the bolt pushes on the half of the hole facing its force, with a cosine pressure; out-of-plane P is shared round the hole edge.',rig:'Rigid: the hole edge moves as one rigid body with the bolt, which carries the load (shank fit, welded stud).',fix:'Fixed: the bolt is held (u, v and w), so the plate is supported at the hole and free to rotate about the bolt; tick more restraints in the pop-up.',hole:'Hole only: an opening with no load.'}[TO.bact])+' Click an existing round opening to use it.</p>';
+ if(k=='rigid')return seg('rsh',[['rect','Rectangle'],['circ','Circle']])+num('rfx','Fx','kN')+num('rfy','Fy','kN')+num('rmz','Mz (anticlockwise)','kNm')+num('rP','P (out of plane, +z)','kN')+num('rtx','Tx (tilts +x side down)','kNm')+num('rty','Ty (tilts +y side down)','kNm')+
+  seg('rfix',[['none','Free'],['pin','Pinned'],['fix','Fixed']])+'<p class="fh">Click an opening to make its edge rigid, or drag a patch. Loads act at the centre; Pinned holds u, v, w; Fixed also stops every rotation. Use it to load or support a plate through a bolt, pin, column footprint or welded attachment.</p>';
+ if(k=='zone')return num('zmm','Element size','mm')+'<p class="fh">The finer spacing runs right across the plate in the x and y bands of the zone, so keep zones compact.</p>';
  if(k=='lsup')return preSel('lsup',['ss','ssh','cl','spr','pin','rlx','rly','fix'])+(TO.lsup=='spr'?num('k','Line spring k','kN/m²'):'')+'<p class="fh">Drag along an edge, or across the plate for an internal wall or beam line. Simple soft: w = 0 only (rotation free). Hard also stops rotation along a straight horizontal or vertical edge. Clamped: w and both rotations zero. In-plane types restrain u and v. Shift-click a plate to support its whole outline.</p>';
  if(k=='psup')return preSel('psup',['col','colf','spr','pin','rlx','rly','fix'])+(TO.psup=='spr'?num('k','Spring k','kN/m'):'')+'<p class="fh">A column (w = 0) is a pinned point support for bending; a fixed column also stops rotation. Point supports snap to the nearest mesh node.</p>';
  if(k=='gnd')return num('kg','Modulus of subgrade k','kN/m³')+'<p class="fh">Typical k: soft clay 5 000–15 000, firm 15 000–40 000, dense sand 50 000–100 000 kN/m³. Click a plate or drag a patch.</p>';
@@ -965,7 +1103,7 @@ function placeFly(){const f=$('tfly'),b=$('t_'+tool);if(f.hidden||!b)return;cons
 $('tflyB').addEventListener('click',e=>{const b=e.target.closest('[data-seg]');if(b){TO[b.dataset.seg]=b.dataset.v;syncFly()}});
 $('tflyB').addEventListener('change',e=>{const k=e.target.dataset.k;if(!k)return;TO[k]=e.target.tagName=='SELECT'?e.target.value:+e.target.value;if(e.target.tagName=='SELECT')syncFly()});
 $('tflyX').onclick=()=>{flyShut=tool;$('tfly').hidden=true};addEventListener('resize',placeFly);
-function chipSet(){const c=$('tchip');if(!mouse||O.v3&&R&&sysOK('B')||drag&&drag.t=='pan'){c.className='off';return}const t=tool=='sel'?(hov?({shape:'Plate / opening',sup:'Support',load:'Load',cut:'Section cut',ann:'Annotation',zone:'Mesh zone'}[hov.k]+' · click to select'):'Select'):(TOOLS.find(x=>x[0]==tool)[1]+(poly?' · '+poly.length+' points, Enter to close':'')+(drag&&drag.t=='draw'?'':' · '+CHIP[tool]));
+function chipSet(){const c=$('tchip');if(!mouse||O.v3&&R&&sysOK('B')||drag&&drag.t=='pan'){c.className='off';return}const t=tool=='sel'?(hov?({shape:'Plate / opening',sup:'Support',load:'Load',cut:'Section cut',ann:'Annotation',zone:'Mesh zone',rig:'Rigid zone'}[hov.k]+' · click to select'):'Select'):(TOOLS.find(x=>x[0]==tool)[1]+(poly?' · '+poly.length+' points, Enter to close':'')+(drag&&drag.t=='draw'?'':' · '+CHIP[tool]));
  let v='';if(R&&!R.empty&&O.field!='none'&&sysOK(FLD[O.field].s)&&!drag){const q=fieldAt(R,O.field,mouse.w[0],mouse.w[1],O.avg);if(q!=null)v=' · '+FLD[O.field].sym+' = '+f3(q*FLD[O.field].f)+' '+FLD[O.field].u}
  c.innerHTML='<b>'+t.split(' · ')[0]+'</b>'+t.slice(t.split(' · ')[0].length)+v;c.className='';const x=mouse.p[0]+16,y=mouse.p[1]+18;c.style.left=Math.min(x,W-c.offsetWidth-8)+'px';c.style.top=Math.min(y,H-c.offsetHeight-8)+'px'}
 /* ---------- pointer interaction ---------- */
@@ -976,11 +1114,17 @@ cv.onpointerdown=e=>{cv.setPointerCapture(e.pointerId);const p=evP(e);$('pop').c
  if(e.button==2||e.button==1){if(poly&&e.button==2){poly=null;draw();return}if(drag&&drag.t=='draw'){drag=null;draw();return}drag={t:'pan',p,ox,oy};return}
  const sn=snapPt(p[0],p[1]),w=sn.p;
  if(typeof hmPick=='function'&&hmPick(wx(p[0]),wy(p[1])))return;
- if(tool=='sel'){const hi=hitHandle(...p);if(hi>=0){pushU();drag={t:'handle',i:hi,o:sel.o,src:JSON.parse(JSON.stringify(sel.o)),moved:false};return}
-  const h=hitAt(...p);if(h){if(!sel||sel.o!==h.o){sel=h;buildPop()}drag={t:'move',o:h.o,w0:[wx(p[0]),wy(p[1])],src:JSON.parse(JSON.stringify(h.o)),moved:false,pushed:false};if(h.k=='cut')sideOpen(h.o);draw();return}
-  sel=null;buildPop();drag={t:'pan',p,ox,oy,sel:1};draw();return}
+ if(tool=='sel'){const hi=sel&&sel.o?hitHandle(...p):-1;if(hi>=0){pushU();drag={t:'handle',i:hi,o:sel.o,src:JSON.parse(JSON.stringify(sel.o)),moved:false};return}
+  const h=hitAt(...p);
+  if(h&&e.shiftKey){toggleSel(h);buildPop();draw();return}
+  if(h&&sel&&sel.set&&sel.set.has(h.o)){/* drag a member of a group: the whole group moves; a click without moving picks just that item */const L=[...sel.set];drag={t:'gmove',L,src:new Map(L.map(o=>[o,JSON.parse(JSON.stringify(o))])),w0:[wx(p[0]),wy(p[1])],moved:false,pushed:false,pick:h};return}
+  if(h){if(!sel||sel.o!==h.o){sel=h;buildPop()}const mo=(h.o.rig||h.o.kind=='bolt')&&h.o.sid!=null?M.shapes.find(s=>s.id===h.o.sid)||h.o:h.o;/* a bolt or rigid insert drags its hole */drag={t:'move',o:mo,w0:[wx(p[0]),wy(p[1])],src:JSON.parse(JSON.stringify(mo)),moved:false,pushed:false};if(h.k=='cut')sideOpen(h.o);draw();return}
+  /* empty space: box (marquee) select; Shift adds to the selection */
+  const base=e.shiftKey?selList():[];if(!e.shiftKey){sel=null;buildPop()}drag={t:'box',p0:p,p1:p,base};draw();return}
  if(tool=='elem'){const q=elAt(wx(p[0]),wy(p[1]));if(q){elOpen(q.e,q.r,q.s);drag={t:'elem'}}else toast('Click inside the plate mesh.');return}
- if(tool=='del'){const h=hitAt(...p);if(h){pushU();rmObj(h.o);sel=null;buildPop();update()}return}
+ if(tool=='del'){const h=hitAt(...p);if(h){pushU();rmObj(h.o);sel=null;buildPop();update()}else drag={t:'box',p0:p,p1:p,base:[],del:1};return}
+ if(tool=='bolt'){placeBolts(w,hitAt(...p));return}
+ if(tool=='rigid'){const h=hitAt(...p);drag={t:'draw',mode:TO.rsh=='circ'?'circ':'rect',a:w,b:w,p0:p,hit:h};return}
  if(tool=='plate'||tool=='hole'){if(TO.shape=='poly'){if(poly&&poly.length>2&&Math.hypot(sx(poly[0][0])-p[0],sy(poly[0][1])-p[1])<10){closePoly();return}let q=w;if(e.shiftKey&&poly&&poly.length)q=ortho(poly[poly.length-1],w);(poly=poly||[]).push(q);draw();return}
   drag={t:'draw',mode:TO.shape=='circ'?'circ':'rect',a:w,b:w};return}
  if(tool=='zone'){drag={t:'draw',mode:'rect',a:w,b:w};return}
@@ -990,10 +1134,13 @@ cv.onpointerdown=e=>{cv.setPointerCapture(e.pointerId);const p=evP(e);$('pop').c
  if(tool=='pt'){pushU();const l={id:nid(),kind:'pt',p:w,P:TO.P};M.loads.push(l);update();return}
  if(tool=='force'){drag={t:'draw',mode:'force',a:w,b:w,p0:p};return}
  if(tool=='text'){pushU();const a={id:nid(),k:'text',pts:[w],t:'Note',fs:12};M.anns.push(a);sel={k:'ann',o:a};buildPop();draw();setTimeout(()=>{const t=$('pop').querySelector('textarea');if(t){t.focus();t.select()}},0);return}};
-cv.onpointermove=e=>{const p=evP(e),sn=drag&&drag.t=='pan'?{p:[wx(p[0]),wy(p[1])],k:''}:snapPt(p[0],p[1],{edge:tool!='sel'});mouse={p,w:sn.p,snap:sn};$('coord').textContent='x '+fm(sn.p[0])+'  y '+fm(sn.p[1])+' m'+(sn.k&&sn.k!='grid'?' · '+sn.k:'');
+cv.onpointermove=e=>{const p=evP(e),sn=drag&&drag.t=='pan'?{p:[wx(p[0]),wy(p[1])],k:''}:snapPt(p[0],p[1],{edge:tool!='sel'});mouse={p,w:sn.p,snap:sn};$('coord').textContent=(lenMM()?'x '+fmm(sn.p[0]*1e3)+'  y '+fmm(sn.p[1]*1e3)+' mm':'x '+fm(sn.p[0])+'  y '+fm(sn.p[1])+' m')+(sn.k&&sn.k!='grid'?' · '+sn.k:'');
  if(drag){if(drag.t=='rot'){O.az=drag.az+(p[0]-drag.p[0])*.01;O.el=Math.max(.05,Math.min(1.5,drag.el+(p[1]-drag.p[1])*.01));draw();return}
   if(drag.t=='elem'){const q=elAt(wx(p[0]),wy(p[1]));if(q){if(sideEl&&q.e===sideEl.k){sideEl.r=q.r;sideEl.s=q.s;elUpdateLight()}else elOpen(q.e,q.r,q.s)}return}
   if(drag.t=='pan'){ox=drag.ox+p[0]-drag.p[0];oy=drag.oy+p[1]-drag.p[1];draw();return}
+  if(drag.t=='box'){drag.p1=p;draw();return}
+  if(drag.t=='gmove'){const g=+$('snap').value,raw=[wx(p[0]),wy(p[1])];let dx=raw[0]-drag.w0[0],dy=raw[1]-drag.w0[1];if(!drag.moved&&Math.hypot(dx,dy)*S<4)return;if(g&&!e.altKey){dx=Math.round(dx/g)*g;dy=Math.round(dy/g)*g}if(e.shiftKey){if(Math.abs(dx)>Math.abs(dy))dy=0;else dx=0}
+   if(!drag.pushed){pushU();drag.pushed=true}drag.moved=true;drag.L.forEach(o=>moveObj(o,dx,dy,drag.src.get(o)));M.cuts.forEach(c=>c._d=null);liveSolve();placePop();draw();return}
   if(drag.t=='draw'){let b=sn.p;if(e.shiftKey&&drag.mode=='line')b=ortho(drag.a,b);drag.b=b;draw();return}
   if(drag.t=='handle'){let q=sn.p;setHandle(drag.o,drag.i,q,drag.src,e.shiftKey);drag.moved=true;liveSolve();draw();return}
   if(drag.t=='move'){const g=+$('snap').value,raw=[wx(p[0]),wy(p[1])];let dx=raw[0]-drag.w0[0],dy=raw[1]-drag.w0[1];if(!drag.moved&&Math.hypot(dx,dy)*S<4)return;if(g){dx=Math.round(dx/g)*g;dy=Math.round(dy/g)*g}if(e.shiftKey){if(Math.abs(dx)>Math.abs(dy))dy=0;else dx=0}
@@ -1002,10 +1149,15 @@ cv.onpointermove=e=>{const p=evP(e),sn=drag&&drag.t=='pan'?{p:[wx(p[0]),wy(p[1])
 cv.onpointerleave=()=>{mouse=null;hov=null;$('coord').textContent='';draw()};
 let liveT=0;function liveSolve(){if(lastSolve<70){cancelAnimationFrame(liveT);liveT=requestAnimationFrame(()=>{runSolve()})}else{dirty=true}}
 cv.onpointerup=e=>{const p=evP(e),d=drag;drag=null;if(!d){draw();return}
+ if(d.t=='box'){endBox(d);return}
+ if(d.t=='gmove'){if(d.moved){update();buildPop()}else{sel=d.pick;buildPop()}draw();return}
  if(d.t=='pan'){if(d.sel&&Math.hypot(p[0]-d.p[0],p[1]-d.p[1])<3){}draw();return}
  if(d.t=='handle'||d.t=='move'){if(d.moved){update();buildPop()}else if(d.pushed)UND.pop();draw();return}
  if(d.t!='draw')return;const a=d.a,b=d.b,big=dist(a,b)*S>6;
- if(tool=='plate'||tool=='hole'||tool=='zone'){if(!big)return draw();if(tool=='zone'){pushU();const z={id:nid(),pts:rectPts(a,b),h:TO.zh};M.mesh.zones.push(z);update();return}
+ if(tool=='rigid'){if(!big){const h=d.hit;const s=h&&h.k=='shape'&&h.o.kind=='hole'?h.o:h&&h.k=='rig'?null:null;
+   if(h&&h.k=='rig'){sel=h;buildPop();draw();return}if(!s){toast('Click an opening to make it rigid, or drag a patch over the plate.');draw();return}if((M.rigs||[]).some(r=>r.sid===s.id)){toast('That opening is already rigid.');return}pushU();const r=newRig({sid:s.id});sel={k:'rig',o:r};buildPop();update();return}
+  pushU();const r=newRig(d.mode=='circ'?{circ:true,c:a,r:dist(a,b),n:32}:{rect:true,pts:rectPts(a,b)});sel={k:'rig',o:r};buildPop();update();return}
+ if(tool=='plate'||tool=='hole'||tool=='zone'){if(!big)return draw();if(tool=='zone'){pushU();const z={id:nid(),pts:rectPts(a,b),h:TO.zmm/1000};M.mesh.zones.push(z);update();return}
   if(d.mode=='circ')addShape(tool,{circ:true,c:a,r:dist(a,b),n:48});else addShape(tool,{rect:true,pts:rectPts(a,b)});return}
  if(tool=='area'||tool=='gnd'){if(big){pushU();if(tool=='area'){M.loads.push({id:nid(),kind:'area',pts:rectPts(a,b),q:TO.q})}else{M.sups.push({id:nid(),type:'area',pts:rectPts(a,b),k:TO.kg,pre:'gnd'})}update();return}
   const s=plateAt(wx(p[0]),wy(p[1]));if(!s){toast('Click inside a plate, or drag a patch.');return}pushU();if(tool=='area'){M.loads.push({id:nid(),kind:'area',sid:s.id,q:TO.q})}else{M.sups.push({id:nid(),type:'area',sid:s.id,k:TO.kg,pre:'gnd'})}update();return}
@@ -1023,15 +1175,20 @@ cv.onpointerup=e=>{const p=evP(e),d=drag;drag=null;if(!d){draw();return}
  buildPop();update()};
 cv.ondblclick=()=>{if(poly)closePoly()};
 function closePoly(){if(!poly||poly.length<3){poly=null;draw();return}let P=poly;poly=null;if(polyArea(P)<0)P=P.reverse();if(Math.abs(polyArea(P))<1e-6){draw();return}addShape(tool,{pts:P})}
-cv.addEventListener('wheel',e=>{e.preventDefault();const p=evP(e),f=Math.exp(-e.deltaY*.0015);if(O.v3&&R&&sysOK('B')){O.z3=Math.max(.2,Math.min(8,O.z3*f));draw();return}const x=wx(p[0]),y=wy(p[1]);S=Math.max(1,Math.min(5000,S*f));ox=p[0]-x*S;oy=p[1]+y*S;draw();placePop()},{passive:false});
+cv.addEventListener('wheel',e=>{e.preventDefault();const p=evP(e),f=Math.exp(-e.deltaY*.0015);if(O.v3&&R&&sysOK('B')){O.z3=Math.max(.2,Math.min(8,O.z3*f));draw();return}const x=wx(p[0]),y=wy(p[1]);S=Math.max(1,Math.min(2e5,S*f));ox=p[0]-x*S;oy=p[1]+y*S;draw();placePop()},{passive:false});
 /* ---------- keyboard ---------- */
 addEventListener('keydown',e=>{const ae=document.activeElement,typing=ae&&(ae.tagName=='INPUT'&&ae.type!='checkbox'&&ae.type!='range'||ae.tagName=='TEXTAREA'||ae.tagName=='SELECT');
  if(e.key=='Escape'){if(typing){ae.blur();return}if(hm.pin){hm.pin=null;hmInfo();hmPaint();return}if(!$('ovDlg').hidden){closeDlg();return}if(!$('ovGal').hidden){$('ovGal').hidden=true;return}if(!$('ovGuide').hidden){$('ovGuide').hidden=true;return}if(poly||drag){poly=null;drag=null}else if(sel){sel=null;buildPop()}else setTool('sel');draw();return}
  if(typing)return;const k=e.key.toLowerCase();
+ if((e.ctrlKey||e.metaKey)&&k=='a'){e.preventDefault();if(tool!='sel')setTool('sel');selectAll();return}
+ if((e.ctrlKey||e.metaKey)&&k=='c'){if(copySel()){e.preventDefault();toast('Copied '+CLIP.objs.length+' item'+(CLIP.objs.length==1?'':'s')+'.')}return}
+ if((e.ctrlKey||e.metaKey)&&k=='v'){if(CLIP){e.preventDefault();pasteClip(mouse?mouse.w:null)}return}
+ if((e.ctrlKey||e.metaKey)&&k=='d'){e.preventDefault();if(copySel())pasteClip(null);return}
  if((e.ctrlKey||e.metaKey)&&k=='z'){e.preventDefault();e.shiftKey?redo():undo();return}if((e.ctrlKey||e.metaKey)&&k=='y'){e.preventDefault();redo();return}if((e.ctrlKey||e.metaKey)&&k=='s'){e.preventDefault();openIO();return}
  if(e.ctrlKey||e.metaKey||e.altKey)return;
  if(e.key=='Enter'&&poly){closePoly();return}
- if((e.key=='Delete'||e.key=='Backspace')&&sel){pushU();rmObj(sel.o);sel=null;buildPop();update();return}
+ if((e.key=='Delete'||e.key=='Backspace')&&sel){pushU();selList().forEach(rmObj);sel=null;buildPop();update();return}
+ if(e.key.startsWith('Arrow')&&sel){e.preventDefault();const g=+$('snap').value||(lenMM()?.001:.01),st=(e.shiftKey?5:1)*g,dx=e.key=='ArrowRight'?st:e.key=='ArrowLeft'?-st:0,dy=e.key=='ArrowUp'?st:e.key=='ArrowDown'?-st:0;pushU();selList().forEach(o=>moveObj(o,dx,dy,JSON.parse(JSON.stringify(o))));M.cuts.forEach(c=>c._d=null);update();placePop();return}
  if(k=='f'){fit();return}if(k=='m'){hmToggle();return}if(e.key=='?'){showGuide();return}
  if(KEY[k]){setTool(KEY[k]);return}});
 /* ---------- bottom bar & display box ---------- */
@@ -1039,10 +1196,11 @@ $('fSel').onchange=()=>{O.field=$('fSel').value;fieldUser=true;if(FLD[O.field])O
 [['oAvg','avg'],['oCon','con'],['oIso','iso'],['oMesh','mesh'],['oDef','def'],['oVec','vec'],['oPk','pk'],['oRx','rx'],['o3d','v3'],['oNn','nn']].forEach(([id,k])=>{$(id).checked=O[k];$(id).onchange=()=>{O[k]=$(id).checked;rasK='';if(k=='avg'){M.cuts.forEach(c=>c._d=null);if(typeof sideUpdate=='function')sideUpdate()}draw();buildInfo()}});
 $('dsB').innerHTML=[['defS','Deformation',-2,3,.25],['cutS','Cut diagram',-2,2,.25],['vecS','Vectors',-2,2,.25]].map(([k,t,a,b,s])=>'<div class="dsr"><span>'+t+'</span><input type="range" data-ds="'+k+'" min="'+a+'" max="'+b+'" step="'+s+'" value="0"><b id="ds_'+k+'">1×</b></div>').join('')+
  '<div class="dsr"><span>Bands</span><input type="range" id="dsBand" min="0" max="24" step="1" value="12"><b id="ds_b">12</b></div><div class="dsr"><span>Opacity</span><input type="range" id="dsOp" min="0.2" max="1" step="0.05" value="0.9"><b id="ds_o">90%</b></div>'+
+ '<div class="dsr"><span>Lengths</span><select id="dsLu" style="grid-column:2/4;padding:2px 4px;font-size:12px"><option value="auto">Auto (mm for small plates)</option><option value="m">Metres</option><option value="mm">Millimetres</option></select></div>'+
  '<div class="dsr"><span>Colours</span><select id="dsPal" style="grid-column:2/4;padding:2px 4px;font-size:12px"><option value="auto">Auto (diverging if ±)</option><option value="plasma">Plasma</option><option value="turbo">Turbo</option><option value="neon">Neon</option><option value="div">Diverging</option></select></div>';
 $('dsB').hidden=true;$('dsT').onclick=()=>{$('dsB').hidden=!$('dsB').hidden;$('dsA').textContent=$('dsB').hidden?'▾':'▴'};
 $('dsB').addEventListener('input',e=>{const k=e.target.dataset.ds;if(k){O[k]=Math.pow(2,+e.target.value);$('ds_'+k).textContent=(+O[k].toPrecision(2))+'×'}if(e.target.id=='dsBand'){O.bands=+e.target.value;$('ds_b').textContent=O.bands||'smooth'}if(e.target.id=='dsOp'){O.op=+e.target.value;$('ds_o').textContent=Math.round(O.op*100)+'%'}rasK='';draw()});
-$('dsPal').onchange=()=>{O.pal=$('dsPal').value;rasK='';draw()};
+$('dsPal').onchange=()=>{O.pal=$('dsPal').value;rasK='';draw()};$('dsLu').onchange=()=>{O.lu=$('dsLu').value;buildPop();draw()};
 $('undo').onclick=undo;$('redo').onclick=redo;$('fit').onclick=fit;$('snap').onchange=draw;
 $('theme').onclick=()=>{const d=document.documentElement;d.dataset.theme=d.dataset.theme=='dark'?'light':'dark';try{localStorage.setItem('pp_theme',d.dataset.theme)}catch(e){}rasK='';draw();if(typeof sideUpdate=='function')sideUpdate();if(typeof hmUpdate=='function')hmUpdate()};
 $('infoT').onclick=()=>{const b=$('infoB');b.hidden=!b.hidden;$('infoT').textContent=b.hidden?'▸ Info':'▾'};
@@ -1051,12 +1209,12 @@ function buildInfo(){syncProps();const e=$('infoB');if(!R||R.empty){e.innerHTML=
  const N=R.mesh.nodes.length,ne=R.mesh.els.length,row=(a,b,c)=>'<div class="ir"><span>'+a+'</span><b'+(c?' class="'+c+'"':'')+'>'+b+'</b></div>';let h='';
  const stat=(s,lab,nd)=>{const S_=s=='B'?R.B:R.Mm,has=s=='B'?R.hasB:R.hasM;let t='<h5>'+lab+'</h5>';if(!has)return t+row('Status','no '+(s=='B'?'out-of-plane':'in-plane')+' load');
   t+=row('Free DOFs',(S_.nf).toLocaleString('en-GB')+' of '+(nd*N).toLocaleString('en-GB'));if(!S_.ok)return t+row('Status','mechanism: add supports','bd');
-  let sF=0,sR=0;if(s=='B'){S_.F.forEach((v,d)=>{if(d%3==0)sF+=v});S_.R.forEach((v,d)=>{if(d%3==0)sR+=v});const wm=R.F.w.n.reduce((m,v)=>Math.abs(v)>Math.abs(m)?v:m,0);
-   t+=row('Max deflection',f3(wm*1e3)+' mm')+row('Span / deflection',(()=>{const[a,b,c,d]=R.mesh.ext;return wm?'L/'+Math.round(Math.min(b-a,d-c)/Math.abs(wm)):'–'})())+row('Load Σq',f3(sF)+' kN')+row('Reactions ΣR',f3(-sR)+' kN',Math.abs(sF+sR)<=1e-6*Math.max(1,Math.abs(sF))?'ok':'bd')}
-  else{let fx=0,fy=0,rx=0,ry=0;S_.F.forEach((v,d)=>{d%2?fy+=v:fx+=v});S_.R.forEach((v,d)=>{d%2?ry+=v:rx+=v});const um=R.F.um.n.reduce((m,v)=>Math.max(m,v),0),vm=R.F.svm.n.reduce((m,v)=>Math.max(m,v),0);
-   t+=row('Max |u|',f3(um*1e3)+' mm')+row('Max von Mises',f3(vm/1e3)+' MPa')+row('Load ΣFx, ΣFy',f3(fx)+', '+f3(fy)+' kN')+row('Reactions ΣRx, ΣRy',f3(-rx)+', '+f3(-ry)+' kN',Math.abs(fx+rx)+Math.abs(fy+ry)<=1e-6*Math.max(1,Math.abs(fx)+Math.abs(fy))?'ok':'bd')}return t};
+  const SS=sysSum(S_);let sF=SS.F.z,sR=SS.R.z;if(s=='B'){const wm=R.F.w.n.reduce((m,v)=>Math.abs(v)>Math.abs(m)?v:m,0);
+   const sv=R.F.svs.n.reduce((m,v)=>Math.max(m,v),0);t+=(M.mat.fy>0?row('Surface σvm / fy',f3(sv/(M.mat.fy*10))+' %',sv>M.mat.fy*1e3?'bd':''):'')+row('Max deflection',f3(wm*1e3)+' mm')+row('Span / deflection',(()=>{const[a,b,c,d]=R.mesh.ext;return wm?'L/'+Math.round(Math.min(b-a,d-c)/Math.abs(wm)):'–'})())+row('Load Σq',f3(sF)+' kN')+row('Reactions ΣR',f3(-sR)+' kN',Math.abs(sF+sR)<=1e-6*Math.max(1,Math.abs(sF))?'ok':'bd')}
+  else{const fx=SS.F.x,fy=SS.F.y,rx=SS.R.x,ry=SS.R.y;const um=R.F.um.n.reduce((m,v)=>Math.max(m,v),0),vm=R.F.svm.n.reduce((m,v)=>Math.max(m,v),0);
+   t+=row('Max |u|',f3(um*1e3)+' mm')+row('Max von Mises',f3(vm/1e3)+' MPa')+(M.mat.fy>0?row('Utilisation σvm/fy',f3(vm/(M.mat.fy*10))+' %',vm>M.mat.fy*1e3?'bd':''):'')+row('Load ΣFx, ΣFy',f3(fx)+', '+f3(fy)+' kN')+row('Reactions ΣRx, ΣRy',f3(-rx)+', '+f3(-ry)+' kN',Math.abs(fx+rx)+Math.abs(fy+ry)<=1e-6*Math.max(1,Math.abs(fx)+Math.abs(fy))?'ok':'bd')}return t};
  h+=stat('B','Out-of-plane · bending',3)+stat('M','In-plane · membrane',2);
- h+='<h5>Mesh</h5>'+row('Elements · nodes',ne.toLocaleString('en-GB')+' · '+N.toLocaleString('en-GB'))+row('Element size h',fm(R.mesh.h*1000)+' mm')+row('Solved in',Math.round(R.ms)+' ms');
+ h+='<h5>Mesh</h5>'+row('Elements · nodes',ne.toLocaleString('en-GB')+' · '+N.toLocaleString('en-GB'))+row('Element size h',fm(R.mesh.h*1000)+' mm')+(R.mesh.auto?row('Refined at openings',R.mesh.auto+' × '+M.mesh.ref+' round'):'')+((M.rigs||[]).length?row('Rigid zones',String(M.rigs.length)):'')+row('Solved in',Math.round(R.ms)+' ms');
  if(R.warn.length)h+=R.warn.map(w=>'<div class="wn">⚠ '+w+'</div>').join('');if(R.info.length)h+='<details><summary>Notes ('+R.info.length+')</summary>'+R.info.map(w=>'<div class="ir"><span>'+w+'</span></div>').join('')+'</details>';
  h+='<details><summary>Hint</summary><div id="hint">'+(HINT[tool]||'')+'</div></details>';e.innerHTML=h}
 addEventListener('resize',resize);
@@ -1071,15 +1229,19 @@ $('anB').onclick=()=>anSet(!anOn);$('anSl').oninput=()=>{anSpd=Math.pow(2,+$('an
    =================================================================================================== */
 /* ---------- selection pop-up ---------- */
 const PRE_PT=['col','colf','spr','pin','rlx','rly','fix'],PRE_LN=['ss','ssh','cl','spr','pin','rlx','rly','fix'];
-function objName(o){if(o.kind=='plate'||o.kind=='hole')return(o.kind=='plate'?'Plate ':'Opening ')+(M.shapes.filter(s=>s.kind==o.kind).indexOf(o)+1);
+function objName(o){if(o.rig)return'Rigid zone '+(rigOf(o)+1)+(o.sid!=null?' (bolt / insert)':'');if(o.kind=='bolt')return'Bolt load '+(M.loads.indexOf(o)+1);if(o.kind=='plate'||o.kind=='hole')return(o.kind=='plate'?'Plate ':'Opening ')+(M.shapes.filter(s=>s.kind==o.kind).indexOf(o)+1);
  if(o.type)return(o.type=='area'?'Elastic ground ':o.type=='pt'?'Point support ':'Line support ')+(M.sups.indexOf(o)+1);
  if(o.kind)return({area:'Pressure ',line:'Line load ',pt:'Point load ',force:'In-plane force ',traction:'Edge traction '}[o.kind]||'Load ')+(M.loads.indexOf(o)+1);
  if(o.a)return'Section '+cutName(o);if(o.k)return({text:'Text note',arrow:'Arrow',dim:'Dimension',box:'Box'}[o.k]);if(o.h)return'Mesh zone';return'Item'}
-function popFields(o){const F=[],num=(lab,u,get,set,st)=>F.push({lab,u,get,set,st}),xy=(lab,P)=>{num(lab+' x','m',()=>P()[0],v=>{P()[0]=v});num(lab+' y','m',()=>P()[1],v=>{P()[1]=v})};
+function popFields(o){const F=[],num=(lab,u,get,set,st,g)=>F.push({lab,u,get,set,st,g}),xy=(lab,P)=>{num(lab+' x','m',()=>P()[0],v=>{P()[0]=v},0,1);num(lab+' y','m',()=>P()[1],v=>{P()[1]=v},0,1)};
+ if(o.rig){num('Fx','kN',()=>+o.fx||0,v=>o.fx=v);num('Fy','kN',()=>+o.fy||0,v=>o.fy=v);num('Mz (anticlockwise)','kNm',()=>+o.mz||0,v=>o.mz=v);num('P (out of plane)','kN',()=>+o.P||0,v=>o.P=v);num('Tx (tilts +x down)','kNm',()=>+o.tx||0,v=>o.tx=v);num('Ty (tilts +y down)','kNm',()=>+o.ty||0,v=>o.ty=v);
+  if(o.sid==null){if(o.circ){xy('Centre',()=>o.c);num('Radius','m',()=>o.r,v=>{if(v>0)o.r=v},0,1)}else if(o.pts){const P=o.pts,g=()=>[P[0][0],P[0][1],P[1][0]-P[0][0],P[2][1]-P[1][1]],st=(i,v)=>{const a=g();a[i]=v;if(a[2]>0&&a[3]>0)o.pts=rectPts([a[0],a[1]],[a[0]+a[2],a[1]+a[3]])};num('Left x','m',()=>g()[0],v=>st(0,v),0,1);num('Bottom y','m',()=>g()[1],v=>st(1,v),0,1);num('Width','m',()=>g()[2],v=>st(2,v),0,1);num('Height','m',()=>g()[3],v=>st(3,v),0,1)}}
+  else{const s=M.shapes.find(q=>q.id===o.sid);if(s&&s.circ)num('Hole Ø','m',()=>2*s.r,v=>{if(v>0)s.r=v/2},0,1)}return F}
+ if(o.kind=='bolt'){num('Fx','kN',()=>+o.fx||0,v=>o.fx=v);num('Fy','kN',()=>+o.fy||0,v=>o.fy=v);num('P (out of plane)','kN',()=>+o.P||0,v=>o.P=v);const s=M.shapes.find(q=>q.id===o.sid);if(s&&s.circ)num('Hole Ø','m',()=>2*s.r,v=>{if(v>0)s.r=v/2},0,1);return F}
  if(o.kind=='plate'||o.kind=='hole'){F.push({lab:'Type',sel:[['plate','Plate'],['hole','Opening']],get:()=>o.kind,set:v=>o.kind=v});
-  if(o.circ){xy('Centre',()=>o.c);num('Radius','m',()=>o.r,v=>{if(v>0)o.r=v});num('Segments','',()=>o.n||48,v=>{o.n=Math.max(8,Math.min(256,Math.round(v)))},1)}
+  if(o.circ){xy('Centre',()=>o.c);num('Radius','m',()=>o.r,v=>{if(v>0)o.r=v},0,1);num('Segments','',()=>o.n||48,v=>{o.n=Math.max(8,Math.min(256,Math.round(v)))},1)}
   else if(o.rect){const P=o.pts,g=()=>[P[0][0],P[0][1],P[1][0]-P[0][0],P[2][1]-P[1][1]],st=(i,v)=>{const a=g();a[i]=v;if(a[2]>0&&a[3]>0)o.pts=rectPts([a[0],a[1]],[a[0]+a[2],a[1]+a[3]])};
-   num('Left x','m',()=>g()[0],v=>st(0,v));num('Bottom y','m',()=>g()[1],v=>st(1,v));num('Width','m',()=>g()[2],v=>st(2,v));num('Height','m',()=>g()[3],v=>st(3,v))}}
+   num('Left x','m',()=>g()[0],v=>st(0,v),0,1);num('Bottom y','m',()=>g()[1],v=>st(1,v),0,1);num('Width','m',()=>g()[2],v=>st(2,v),0,1);num('Height','m',()=>g()[3],v=>st(3,v),0,1)}}
  else if(o.type=='pt'){F.push({lab:'Type',sel:PRE_PT.map(p=>[p,SUPP[p].lab]),get:()=>o.pre,set:v=>{o.pre=v;delete o.c}});xy('Position',()=>o.p);if(o.pre=='spr')num('Spring k','kN/m',()=>o.k||0,v=>o.k=Math.max(0,v))}
  else if(o.type=='line'){F.push({lab:'Type',sel:PRE_LN.map(p=>[p,SUPP[p].lab]),get:()=>o.pre,set:v=>{o.pre=v;delete o.c}});xy('A',()=>o.pts[0]);xy('B',()=>o.pts[1]);if(o.pre=='spr')num('Line spring k','kN/m²',()=>o.k||0,v=>o.k=Math.max(0,v))}
  else if(o.type=='area'){num('Subgrade k','kN/m³',()=>o.k,v=>o.k=Math.max(0,v))}
@@ -1089,37 +1251,106 @@ function popFields(o){const F=[],num=(lab,u,get,set,st)=>F.push({lab,u,get,set,s
  else if(o.kind=='force'){num('Fx','kN',()=>o.fx,v=>o.fx=v);num('Fy','kN',()=>o.fy,v=>o.fy=v);xy('Position',()=>o.p)}
  else if(o.kind=='traction'){num('qx','kN/m',()=>o.qx,v=>o.qx=v);num('qy','kN/m',()=>o.qy,v=>o.qy=v);xy('A',()=>o.pts[0]);xy('B',()=>o.pts[1])}
  else if(o.a&&o.b){xy('A',()=>o.a);xy('B',()=>o.b)}
- else if(o.h&&o.pts){num('Element size','m',()=>o.h,v=>{if(v>=.01)o.h=v})}
+ else if(o.h&&o.pts){num('Element size','m',()=>o.h,v=>{if(v>=.0002)o.h=v})}
  else if(o.k=='text'){F.push({lab:'Text',ta:1,get:()=>o.t,set:v=>o.t=v});num('Font size','px',()=>o.fs||12,v=>o.fs=Math.max(8,Math.min(40,v)),1)}
- else if(o.k=='dim'){num('Offset','m',()=>o.off||0,v=>o.off=v)}
+ else if(o.k=='dim'){num('Offset','m',()=>o.off||0,v=>o.off=v,0,1)}
  if(o.k&&o.k!='text'||o.k=='text')F.push({lab:'Colour',sel:[['','Neon cyan'],['#ff2bd6','Magenta'],['#b44cff','Violet'],['#12d98a','Green'],['#f59e0b','Amber'],['#9d90c9','Muted']],get:()=>o.c||'',set:v=>{if(v)o.c=v;else delete o.c}});
  return F}
-function buildPop(){const p=$('pop');if(!sel||!sel.o){p.hidden=true;return}const o=sel.o,F=popFields(o);let h='<h4><span>'+objName(o)+'</span><button id="popX" title="Close">✕</button></h4>';
+function buildPop(){const p=$('pop');if(sel&&sel.set){buildPopMulti();return}if(!sel||!sel.o){p.hidden=true;return}const o=sel.o,F=popFields(o),mm=lenMM();F.forEach(f=>{if(f.u=='m'&&mm){const g=f.get,s=f.set;f.u='mm';f.get=()=>g()*1000;f.set=v=>s(v/1000)}});let h='<h4><span>'+objName(o)+'</span><button id="popX" title="Close">✕</button></h4>';
  F.forEach((f,i)=>{if(f.sel)h+='<div class="r"><span>'+f.lab+'</span><select data-i="'+i+'">'+f.sel.map(([v,t])=>'<option value="'+v+'"'+(f.get()==v?' selected':'')+'>'+t+'</option>').join('')+'</select></div>';
   else if(f.ta)h+='<textarea data-i="'+i+'" rows="3">'+String(f.get()).replace(/</g,'&lt;')+'</textarea>';
   else h+='<div class="r"><span>'+f.lab+'</span><input type="number" data-i="'+i+'" step="'+(f.st||'any')+'" value="'+(+(+f.get()).toPrecision(6))+'"><i>'+f.u+'</i></div>'});
+ if(o.rig){const f=o.fix||{};h+='<div class="fl" title="Restrained degrees of freedom of the rigid zone, at its centre">'+[['u','u'],['v','v'],['rz','θz'],['w','w'],['rx','βx'],['ry','βy']].map(([k,t])=>'<label><input type="checkbox" data-rf="'+k+'"'+(f[k]?' checked':'')+'>'+t+'</label>').join('')+'</div>'}
  if(o.type=='pt'||o.type=='line'){const c=Object.assign({},SUPP[o.pre].c,o.c||{});h+='<div class="fl" title="Restrained degrees of freedom; tick to override the type">'+[['w','w'],['r','β'],['u','u'],['v','v']].map(([k,t])=>'<label><input type="checkbox" data-c="'+k+'"'+(c[k]?' checked':'')+'>'+t+'</label>').join('')+'</div>'}
  h+='<div id="popRs"></div><div class="bt">';
  if(o.kind=='plate'){h+='<button data-a="ss">Simply support outline</button><button data-a="cl">Clamp outline</button><button data-a="q">Load whole plate</button>'}
  if(o.a&&o.b)h+='<button data-a="side">Open the section panel</button><button data-a="flip">Swap A ↔ B</button>';
+ if(o.kind=='hole'&&o.circ&&!(M.rigs||[]).some(r=>r.sid===o.id))h+='<button data-a="rig">Make rigid</button>'+(M.loads.some(l=>l.kind=='bolt'&&l.sid===o.id)?'':'<button data-a="bear">Add bearing load</button>');
+ if(o.rig&&o.sid!=null&&!M.loads.some(l=>l.kind=='bolt'&&l.sid===o.sid))h+='<button data-a="tobear">Change to bearing</button>';
+ if(o.kind=='bolt'&&!(M.rigs||[]).some(r=>r.sid===o.sid))h+='<button data-a="torig">Change to rigid</button>';
  h+='<button data-a="del">Delete</button></div>';
  if(o.type=='line'||o.type=='pt')h+='<p class="nt">'+(o.type=='line'?'Restrains every mesh node lying on the line.':'Restrains the nearest mesh node.')+' β restrains both rotations; w the deflection; u, v the in-plane movement.</p>';
+ if(o.rig)h+='<p class="nt">'+(o.sid!=null?'Every mesh node round the edge of the opening':'Every mesh node inside the patch')+' moves as one rigid body with the centre ✛, where the loads act and the ticked degrees of freedom are held. Tx and Ty are tilting moments: Tx pushes the +x side down.</p>';
+ if(o.kind=='bolt')h+='<p class="nt">Bearing: the bolt pushes on the half of the hole facing its force with a cosine distribution of radial pressure; P is shared round the hole edge.</p>';
  if(o.kind=='area'&&(o.sid||o.all))h+='<p class="nt">Applied over the whole of '+(o.all?'every plate':objName(M.shapes.find(s=>s.id===o.sid)||{kind:'plate'}))+'.</p>';
  p.innerHTML=h;p.hidden=false;
  p.querySelectorAll('[data-i]').forEach(inp=>{const f=F[+inp.dataset.i];inp.onchange=()=>{pushU();f.set(inp.tagName=='SELECT'||inp.tagName=='TEXTAREA'?inp.value:+inp.value);if(o.a)o._d=null;update();if(inp.tagName=='SELECT')buildPop()};if(inp.tagName=='TEXTAREA')inp.oninput=()=>{f.set(inp.value);draw()}});
+ p.querySelectorAll('[data-rf]').forEach(c=>c.onchange=()=>{pushU();o.fix=Object.assign({},o.fix||{});o.fix[c.dataset.rf]=c.checked?1:0;update()});
  p.querySelectorAll('[data-c]').forEach(c=>c.onchange=()=>{pushU();const base=Object.assign({},SUPP[o.pre].c,o.c||{});base[c.dataset.c]=c.checked?1:0;o.c=base;update()});
  p.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const a=b.dataset.a;if(a=='del'){pushU();rmObj(o);sel=null;buildPop();update();return}if(a=='side'){sideOpen(o);return}if(a=='flip'){pushU();[o.a,o.b]=[o.b,o.a];o._d=null;update();return}
+  if(a=='rig'){pushU();M.loads=M.loads.filter(l=>!(l.kind=='bolt'&&l.sid===o.id));const r=newRig({sid:o.id});sel={k:'rig',o:r};buildPop();update();return}
+  if(a=='bear'){pushU();const l={id:nid(),kind:'bolt',sid:o.id,fx:TO.bfx,fy:TO.bfy,P:TO.bP};M.loads.push(l);sel={k:'load',o:l};buildPop();update();return}
+  if(a=='tobear'){pushU();const l={id:nid(),kind:'bolt',sid:o.sid,fx:+o.fx||0,fy:+o.fy||0,P:+o.P||0};rmObj(o);M.loads.push(l);sel={k:'load',o:l};buildPop();update();return}
+  if(a=='torig'){pushU();rmObj(o);const r=newRig({sid:o.sid,fx:+o.fx||0,fy:+o.fy||0,P:+o.P||0});sel={k:'rig',o:r};buildPop();update();return}
   if(a=='ss'||a=='cl'){pushU();edgeAll(o,a,0);update();toast('Outline '+(a=='ss'?'simply supported':'clamped')+'.');return}if(a=='q'){pushU();M.loads.push({id:nid(),kind:'area',sid:o.id,q:TO.q});update();toast('Pressure '+TO.q+' kPa over '+objName(o)+'.');return}});
  $('popX').onclick=()=>{sel=null;buildPop();draw()};popRes();placePop()}
 function popRes(){const e=$('popRs');if(!e||!sel)return;const o=sel.o;let t='';
  if((o.type=='pt'||o.type=='line'||o.type=='area')&&R&&!R.empty){const r=supReaction(M.sups.indexOf(o));if(r){if(sysOK('B'))t+='Reaction R<sub>z</sub> <b>'+f3(r.z)+' kN</b>'+(o.type=='line'&&r.qmax?'<br>Peak line reaction <b>'+f3(r.qmax)+' kN/m</b>':'')+(o.type!='area'?'<br>'+r.n+' node'+(r.n==1?'':'s')+' restrained':'');
    if(sysOK('M')&&o.type!='area')t+=(t?'<br>':'')+'In-plane R<sub>x</sub> <b>'+f3(r.x)+'</b>, R<sub>y</sub> <b>'+f3(r.y)+' kN</b>'}}
- if(o.kind&&R&&!R.empty&&R.loadInfo){const L=R.loadInfo[M.loads.indexOf(o)];if(L){if(L.tot!=null)t='Total load <b>'+f3(L.tot)+' kN</b>'+(L.area!=null?' over <b>'+f3(L.area)+' m²</b>':'');else t='Total <b>F<sub>x</sub> '+f3(L.tx)+', F<sub>y</sub> '+f3(L.ty)+' kN</b>'}}
- if((o.kind=='plate'||o.kind=='hole')){t='Area <b>'+f3(Math.abs(polyArea(shapePts(o))))+' m²</b>'}
- if(o.a&&o.b){const d=R&&!R.empty?cutData(o):null;t='Length <b>'+fm(dist(o.a,o.b))+' m</b>'+(d?', on the plate <b>'+fm(d.ln)+' m</b>':'');if(d&&sysOK('B'))t+='<br>∫M<sub>n</sub> ds <b>'+f3(d.res.Mn)+' kNm</b> · ∫Q<sub>n</sub> ds <b>'+f3(d.res.Qn)+' kN</b>';if(d&&sysOK('M'))t+='<br>∫N<sub>n</sub> ds <b>'+f3(d.res.Nn)+' kN</b> · ∫N<sub>nt</sub> ds <b>'+f3(d.res.Nnt)+' kN</b>'}
+ if(o.rig&&R&&!R.empty&&R.rigInfo){const j=rigOf(o),I=R.rigInfo[j];if(I){t='<b>'+I.nodes.length+'</b> node'+(I.nodes.length==1?'':'s')+' tied to the centre ('+fL(I.ref[0])+', '+fL(I.ref[1])+')';
+   if(sysOK('M'))t+='<br>Centre u <b>'+f3(R.Mm.u[I.mM]*1e3)+'</b>, v <b>'+f3(R.Mm.u[I.mM+1]*1e3)+' mm</b>, θz <b>'+f3(R.Mm.u[I.mM+2]*1e3)+' mrad</b>';if(sysOK('B'))t+='<br>Centre w <b>'+f3(R.B.u[I.mB]*1e3)+' mm</b>';
+   const r=rigReaction(j);if(r&&r.any){if(sysOK('M'))t+='<br>Reaction R<sub>x</sub> <b>'+f3(r.x)+'</b>, R<sub>y</sub> <b>'+f3(r.y)+' kN</b>, M<sub>z</sub> <b>'+f3(r.mz)+' kNm</b>';if(sysOK('B'))t+='<br>Reaction R<sub>z</sub> <b>'+f3(r.z)+' kN</b>'}
+   const s=o.sid!=null?M.shapes.find(q=>q.id===o.sid):null,Fb=r&&r.any?Math.hypot(r.x,r.y):Math.hypot(+o.fx||0,+o.fy||0);if(s&&s.circ&&Fb>0&&sysOK('M'))t+='<br>Bearing stress F / (d·t) <b>'+f3(Fb/(2*s.r*M.mat.t)/1e3)+' MPa</b>'}}
+ if(o.kind=='bolt'){const s=M.shapes.find(q=>q.id===o.sid),F=Math.hypot(+o.fx||0,+o.fy||0),I=R&&!R.empty&&R.loadInfo?R.loadInfo[M.loads.indexOf(o)]:null;t='Bolt force <b>'+f3(F)+' kN</b>'+(o.P?' · P <b>'+f3(o.P)+' kN</b>':'')+(I?'<br>Spread over <b>'+I.n+'</b> hole-edge nodes':'');if(s&&s.circ&&F>0)t+='<br>Bearing stress F / (d·t) <b>'+f3(F/(2*s.r*M.mat.t)/1e3)+' MPa</b>'}
+ else if(o.kind&&R&&!R.empty&&R.loadInfo){const L=R.loadInfo[M.loads.indexOf(o)];if(L){if(L.tot!=null)t='Total load <b>'+f3(L.tot)+' kN</b>'+(L.area!=null?' over <b>'+f3(L.area)+' m²</b>':'');else t='Total <b>F<sub>x</sub> '+f3(L.tx)+', F<sub>y</sub> '+f3(L.ty)+' kN</b>'}}
+ if((o.kind=='plate'||o.kind=='hole')){const A=Math.abs(polyArea(shapePts(o)));t='Area <b>'+(lenMM()?f3(A*1e6)+' mm²':f3(A)+' m²')+'</b>'}
+ if(o.a&&o.b){const d=R&&!R.empty?cutData(o):null;t='Length <b>'+fL(dist(o.a,o.b))+'</b>'+(d?', on the plate <b>'+fL(d.ln)+'</b>':'');if(d&&sysOK('B'))t+='<br>∫M<sub>n</sub> ds <b>'+f3(d.res.Mn)+' kNm</b> · ∫Q<sub>n</sub> ds <b>'+f3(d.res.Qn)+' kN</b>';if(d&&sysOK('M'))t+='<br>∫N<sub>n</sub> ds <b>'+f3(d.res.Nn)+' kN</b> · ∫N<sub>nt</sub> ds <b>'+f3(d.res.Nnt)+' kN</b>'}
  e.className=t?'rs':'';e.innerHTML=t}
-function objBox(o){const H=handles(o);let P=H.length?H:[];if(o.circ)P=shapePts(o);if(o.sid||o.all){const s=o.sid?M.shapes.find(x=>x.id===o.sid):M.shapes[0];if(s)P=shapePts(s)}if(o.k=='text'&&o._bb){const[X,Y,w,h]=o._bb;return[X,Y,X+w,Y+h]}if(!P.length)return[W/2,H/2,W/2,H/2];const xs=P.map(p=>sx(p[0])),ys=P.map(p=>sy(p[1]));return[Math.min(...xs),Math.min(...ys),Math.max(...xs),Math.max(...ys)]}
-function placePop(){const p=$('pop');if(p.hidden||!sel)return;const[x0,y0,x1,y1]=objBox(sel.o),w=p.offsetWidth,h=p.offsetHeight,dockW=$('dock').offsetWidth+20;let x=x1+18;if(x+w>W-dockW)x=x0-w-18;if(x<8)x=Math.min(W-dockW-w,Math.max(8,x1+18));x=Math.max(8,Math.min(x,W-w-8));let y=Math.max(8,Math.min((y0+y1)/2-h/2,H-h-8));p.style.left=x+'px';p.style.top=y+'px'}
+function objBox(o){if(o.rig){const P=rigPts(M,o);if(P){const xs=P.map(p=>sx(p[0])),ys=P.map(p=>sy(p[1]));return[Math.min(...xs),Math.min(...ys),Math.max(...xs),Math.max(...ys)]}}if(o.kind=='bolt'){const s=M.shapes.find(q=>q.id===o.sid);if(s)return objBox(s)}const H=handles(o);let P=H.length?H:[];if(o.circ)P=shapePts(o);if(o.sid||o.all){const s=o.sid?M.shapes.find(x=>x.id===o.sid):M.shapes[0];if(s)P=shapePts(s)}if(o.k=='text'&&o._bb){const[X,Y,w,h]=o._bb;return[X,Y,X+w,Y+h]}if(!P.length)return[W/2,H/2,W/2,H/2];const xs=P.map(p=>sx(p[0])),ys=P.map(p=>sy(p[1]));return[Math.min(...xs),Math.min(...ys),Math.max(...xs),Math.max(...ys)]}
+function placePop(){const p=$('pop');if(p.hidden||!sel)return;const[x0,y0,x1,y1]=sel.set?(selBox()||[W/2,H/2,W/2,H/2]):objBox(sel.o),w=p.offsetWidth,h=p.offsetHeight,dockW=$('dock').offsetWidth+20;let x=x1+18;if(x+w>W-dockW)x=x0-w-18;if(x<8)x=Math.min(W-dockW-w,Math.max(8,x1+18));x=Math.max(8,Math.min(x,W-w-8));let y=Math.max(8,Math.min((y0+y1)/2-h/2,H-h-8));p.style.left=x+'px';p.style.top=y+'px'}
+
+/* ===== v1.4 selection (Frame Pusher's model): single {k, o} or a group {set}; box select, Shift-click, Ctrl+A, copy / paste, nudge ===== */
+const kindOf=o=>o.rig?'rig':M.shapes.includes(o)?'shape':M.sups.includes(o)?'sup':M.loads.includes(o)?'load':M.cuts.includes(o)?'cut':M.anns.includes(o)?'ann':(M.mesh.zones||[]).includes(o)?'zone':'';
+function selList(){return!sel?[]:sel.set?[...sel.set]:sel.o?[sel.o]:[]}
+function setSel(L){L=[...new Set(L)].filter(Boolean);sel=!L.length?null:L.length==1?{k:kindOf(L[0]),o:L[0]}:{k:'multi',set:new Set(L)}}
+function toggleSel(h){const L=selList(),i=L.indexOf(h.o);if(i>=0)L.splice(i,1);else L.push(h.o);setSel(L)}
+function allObjs(){return[...M.shapes,...(M.rigs||[]),...M.sups,...M.loads,...M.cuts,...M.anns,...(M.mesh.zones||[])]}
+function selectAll(){setSel(allObjs());buildPop();draw();if(sel)toast(selList().length+' items selected.')}
+/* the points that must lie in the box for an item to be picked */
+function objPts(o){if(o.k=='text'&&o._bb){const[X,Y,w,h]=o._bb;return[[wx(X),wy(Y)],[wx(X+w),wy(Y+h)]]}if(o.rig)return rigPts(M,o)||[];if(o.kind=='plate'||o.kind=='hole')return shapePts(o);
+ if(o.sid!=null||o.all){const s=o.sid!=null?M.shapes.find(q=>q.id===o.sid):null;return s?shapePts(s):M.shapes.filter(q=>q.kind=='plate').flatMap(shapePts)}if(o.p)return[o.p];if(o.a&&o.b)return[o.a,o.b];return o.pts||[]}
+function selBox(){const L=selList();if(!L.length)return null;let a=Infinity,b=Infinity,c=-Infinity,d=-Infinity;L.forEach(o=>objPts(o).forEach(p=>{const X=sx(p[0]),Y=sy(p[1]);a=Math.min(a,X);b=Math.min(b,Y);c=Math.max(c,X);d=Math.max(d,Y)}));return a<=c?[a,b,c,d]:null}
+function endBox(d){const x0=Math.min(d.p0[0],d.p1[0]),x1=Math.max(d.p0[0],d.p1[0]),y0=Math.min(d.p0[1],d.p1[1]),y1=Math.max(d.p0[1],d.p1[1]);if(x1-x0<5&&y1-y0<5){draw();return}
+ const inb=o=>{const P=objPts(o);return P.length&&P.every(p=>{const X=sx(p[0]),Y=sy(p[1]);return X>=x0-.5&&X<=x1+.5&&Y>=y0-.5&&Y<=y1+.5})},L=allObjs().filter(inb);
+ if(d.del){if(!L.length){draw();return}pushU();L.forEach(rmObj);sel=null;buildPop();update();toast('Deleted '+L.length+' item'+(L.length==1?'':'s')+'.');return}
+ setSel([...(d.base||[]),...L]);buildPop();draw()}
+/* clipboard: items plus anything attached to a copied plate or opening (its pressure, ground, bolt load, rigid zone) */
+let CLIP=null;
+function copySel(){let L=selList();if(!L.length)return false;const ids=new Set(L.filter(o=>o.kind=='plate'||o.kind=='hole').map(o=>o.id));[...M.loads,...M.sups,...(M.rigs||[])].forEach(o=>{if(o.sid!=null&&ids.has(o.sid)&&!L.includes(o))L.push(o)});
+ L=L.filter(o=>o.sid==null||ids.has(o.sid));if(!L.length){toast('Copy the plate or opening together with what is attached to it.',1);return false}
+ let a=Infinity,b=Infinity,c=-Infinity,d=-Infinity;L.forEach(o=>objPts(o).forEach(p=>{a=Math.min(a,p[0]);b=Math.min(b,p[1]);c=Math.max(c,p[0]);d=Math.max(d,p[1])}));
+ CLIP={objs:L.map(o=>({k:kindOf(o),o:JSON.parse(JSON.stringify(o,(k,v)=>k[0]=='_'?undefined:v))})),bb:[a,b,c,d]};return true}
+function pasteClip(at){if(!CLIP)return;const[a,b,c,d]=CLIP.bb,g=+$('snap').value;let dx,dy;if(at){dx=at[0]-(a+c)/2;dy=at[1]-(b+d)/2}else{dx=(c-a)+Math.max(.1*(c-a),2*(g||0),20/S);dy=0}if(g){dx=Math.round(dx/g)*g;dy=Math.round(dy/g)*g}
+ pushU();const map=new Map(),out=[];CLIP.objs.filter(q=>q.k=='shape').forEach(q=>{const o=JSON.parse(JSON.stringify(q.o));const old=o.id;o.id=nid();map.set(old,o.id);moveObj(o,dx,dy,JSON.parse(JSON.stringify(o)));M.shapes.push(o);out.push(o)});
+ CLIP.objs.filter(q=>q.k!='shape').forEach(q=>{const o=JSON.parse(JSON.stringify(q.o));o.id=nid();if(o.sid!=null){if(!map.has(o.sid))return;o.sid=map.get(o.sid)}else moveObj(o,dx,dy,JSON.parse(JSON.stringify(o)));
+  const arr=q.k=='rig'?M.rigs:q.k=='sup'?M.sups:q.k=='load'?M.loads:q.k=='cut'?M.cuts:q.k=='ann'?M.anns:q.k=='zone'?M.mesh.zones:null;if(arr){arr.push(o);out.push(o)}});
+ setSel(out);buildPop();update();toast('Pasted '+out.length+' item'+(out.length==1?'':'s')+'.')}
+/* bolts: one or a rows × columns group of holes centred on the click, each with a bearing load, a rigid bolt, a fixed bolt or nothing */
+function newRig(o){const r=Object.assign({id:nid(),rig:1,fx:TO.rfx,fy:TO.rfy,mz:TO.rmz,P:TO.rP,tx:TO.rtx,ty:TO.rty,fix:TO.rfix=='pin'?{u:1,v:1,w:1}:TO.rfix=='fix'?{u:1,v:1,rz:1,w:1,rx:1,ry:1}:{}},o);M.rigs=M.rigs||[];M.rigs.push(r);return r}
+function boltOn(s){const a=TO.bact;if(a=='bear')M.loads.push({id:nid(),kind:'bolt',sid:s.id,fx:TO.bfx,fy:TO.bfy,P:TO.bP});else if(a=='rig')newRig({sid:s.id,fx:TO.bfx,fy:TO.bfy,mz:0,P:TO.bP,tx:0,ty:0,fix:{}});else if(a=='fix')newRig({sid:s.id,fx:0,fy:0,mz:0,P:0,tx:0,ty:0,fix:{u:1,v:1,w:1}})}
+function placeBolts(w,h){const n=Math.max(1,Math.round(TO.bn)),m=Math.max(1,Math.round(TO.bm));
+ if(h&&h.k=='shape'&&h.o.kind=='hole'&&n*m==1){const s=h.o;if(TO.bact!='hole'&&((M.rigs||[]).some(r=>r.sid===s.id)||M.loads.some(l=>l.kind=='bolt'&&l.sid===s.id))){toast('That opening already has a bolt.');return}pushU();boltOn(s);update();toast('Bolt added to '+objName(s)+'.');return}
+ const r=TO.bd/2000,p=TO.bp/1000,g=TO.bg/1000,made=[];let off=0;pushU();
+ for(let i=0;i<n;i++)for(let j=0;j<m;j++){const c=[w[0]+(j-(m-1)/2)*g,w[1]+((n-1)/2-i)*p];if(!plateAt(c[0],c[1])||!inDomain(M,c[0],c[1])){off++;continue}const s={id:nid(),kind:'hole',circ:true,c,r,n:32};M.shapes.push(s);boltOn(s);made.push(s)}
+ if(!made.length){UND.pop();syncUR();toast('Place bolts inside a plate (clear of other openings).',1);return}
+ if(!(M.mesh.ref>0)){M.mesh.ref=24;toast('Mesh refinement round openings switched on (24 elements round each hole).')}
+ if(M.mesh.h>8*r){toast('Tip: an element size of about '+fmm(Math.max(1,r*2000))+'–'+fmm(r*4000)+' mm suits holes this size.')}
+ update();if(off)toast(off+' bolt'+(off==1?' was':'s were')+' off the plate and left out.',1);else if(made.length>1)toast(made.length+' bolts placed.')}
+/* group pop-up: counts, shared fields when every item is the same kind, and group actions */
+function buildPopMulti(){const p=$('pop'),L=selList(),cnt={};L.forEach(o=>{const n=objName(o).replace(/ \d+.*$/,'').replace(/ \(.*$/,'');cnt[n]=(cnt[n]||0)+1});
+ let h='<h4><span>'+L.length+' items selected</span><button id="popX" title="Close">✕</button></h4><div class="nt" style="margin:0 0 6px">'+Object.entries(cnt).map(([k,v])=>v+' × '+k).join(', ')+'</div>';
+ const same=Object.keys(cnt).length==1,F=same?popFields(L[0]).filter(f=>!f.g&&!f.ta):[],mm=lenMM();
+ F.forEach((f,i)=>{let u=f.u;if(u=='m'&&mm)u='mm';if(f.sel)h+='<div class="r"><span>'+f.lab+'</span><select data-mi="'+i+'">'+f.sel.map(([v,t])=>'<option value="'+v+'"'+(f.get()==v?' selected':'')+'>'+t+'</option>').join('')+'</select></div>';
+  else h+='<div class="r"><span>'+f.lab+'</span><input type="number" data-mi="'+i+'" step="any" value="'+(+(+f.get()*(f.u=='m'&&mm?1000:1)).toPrecision(6))+'"><i>'+u+'</i></div>'});
+ if(F.length)h+='<p class="nt">A value typed here is applied to all '+L.length+'.</p>';
+ h+='<div class="bt"><button data-ma="dup" title="Ctrl+D">Duplicate</button><button data-ma="copy" title="Ctrl+C, then Ctrl+V pastes at the cursor">Copy</button><button data-ma="del" title="Del">Delete all</button></div>';
+ if(!same)h+='<div class="bt">'+Object.keys(cnt).map(k=>'<button data-mk="'+k+'" title="Keep only these in the selection">Only '+k.toLowerCase()+'s</button>').join('')+'</div>';
+ h+='<p class="nt">Drag any selected item to move the group; arrow keys nudge it by the snap step (Shift ×5).</p>';
+ p.innerHTML=h;p.hidden=false;
+ p.querySelectorAll('[data-mi]').forEach(inp=>{const f=F[+inp.dataset.mi];inp.onchange=()=>{pushU();const v=inp.tagName=='SELECT'?inp.value:+inp.value*(f.u=='m'&&mm?.001:1),i=+inp.dataset.mi;L.forEach(o=>{const g=popFields(o).filter(q=>!q.g&&!q.ta)[i];if(g)g.set(v)});update();buildPop()}});
+ p.querySelectorAll('[data-ma]').forEach(b=>b.onclick=()=>{const a=b.dataset.ma;if(a=='del'){pushU();L.forEach(rmObj);sel=null;buildPop();update();return}if(a=='copy'){if(copySel())toast('Copied: press Ctrl+V to paste at the cursor.');return}if(a=='dup'){if(copySel())pasteClip(null)}});
+ p.querySelectorAll('[data-mk]').forEach(b=>b.onclick=()=>{setSel(L.filter(o=>objName(o).replace(/ \d+.*$/,'').replace(/ \(.*$/,'')==b.dataset.mk));buildPop();draw()});
+ $('popX').onclick=()=>{sel=null;buildPop();draw()};placePop()}
 
 /* ---------- section cut side panel ---------- */
 let sideCut=null,cutPosT=.5,sideSys=null;const sideShow={B:{w:1,Mn:1,Qn:1},M:{Nn:1,Nnt:1,sn:0}};
@@ -1221,7 +1452,7 @@ const hmFmt=x=>x==0?'0':Math.abs(x)>=1e5||Math.abs(x)<1e-2?x.toExponential(2):St
 function hmLab(d,nd){const n=Math.floor(d/nd),c=d%nd;return'n'+(n+1)+' '+(nd==3?['w','βx','βy']:['u','v'])[c]}
 let HV=null;
 function hmData(){if(!R||R.empty)return null;const sys=hm.sys,nd=sys=='B'?3:2,S_=sys=='B'?R.B:R.Mm,nn=R.mesh.nodes.length,n=nd*nn;let idx;
- if(hm.view=='free')idx=hm.ord=='rcm'?S_.free.slice():S_.free.slice().sort((a,b)=>a-b);else idx=hm.ord=='rcm'?R.ord.flatMap(i=>[...Array(nd).keys()].map(c=>nd*i+c)):[...Array(n).keys()];
+ if(hm.view=='free'){const fr=S_.free.filter(d=>d<n);idx=hm.ord=='rcm'?fr:fr.sort((a,b)=>a-b)}else idx=hm.ord=='rcm'?R.ord.flatMap(i=>[...Array(nd).keys()].map(c=>nd*i+c)):[...Array(n).keys()];
  const pos=new Int32Array(n).fill(-1);idx.forEach((d,i)=>pos[d]=i);const rows=globalK(R,sys,hm.step);let mx=0,mn=Infinity;idx.forEach(d=>{for(const v of rows[d].values()){const a=Math.abs(v);if(a>mx)mx=a}});idx.forEach(d=>{for(const v of rows[d].values()){const a=Math.abs(v);if(a>1e-12*mx&&a<mn)mn=a}});
  const prev=hm.step!=null&&hm.step>0?R.mesh.els[hm.step-1]:null,fresh=new Set();if(prev)prev.forEach(a=>prev.forEach(b=>{for(let p=0;p<nd;p++)for(let q=0;q<nd;q++)fresh.add((nd*a+p)*n+(nd*b+q))}));
  return{sys,nd,S_,idx,pos,rows,n:idx.length,N:n,mx,mn,fresh}}
@@ -1463,6 +1694,9 @@ const DG=(()=>{const W=260,H=132,s='<svg viewBox="0 0 '+W+' '+H+'" xmlns="http:/
  vm:s+ln('M20 66H150',G,1)+ln('M30 116V16',G,1)+tx(156,70,'σ',G,'start')+tx(36,18,'τ',G,'start')+'<circle cx="86" cy="66" r="40" fill="none" stroke="'+I+'" stroke-width="1.6"/><circle cx="126" cy="66" r="4" fill="'+M+'"/><circle cx="46" cy="66" r="4" fill="'+C+'"/>'+tx(126,84,'σ1',M,'middle',1)+tx(46,84,'σ2',C,'middle',1)+
   tx(212,44,'σvm =','var(--ink)','middle',1)+tx(212,62,'√(σ1² − σ1σ2','var(--ink)','middle')+tx(212,78,'+ σ2²)','var(--ink)','middle')+tx(212,104,'compare with fy',G)+e}})();
 const DESC={
+ ut:['vm','Utilisation σvm / fy','The in-plane von Mises equivalent stress divided by the yield strength of the material, as a percentage. 100 % is first yield in a uniaxial tensile test.','Peaks at bolt holes and corners are elastic stress concentrations that redistribute by local yielding: judge the extent of the region above 100 % and check bearing, block tearing and net-section rules from your design code.'],
+ svs:['vm','Surface von Mises stress','Von Mises stress on the worse face of the plate, with the bending stress 6M/t² added to the membrane stress N/t (they add on one face and subtract on the other).','For end plates and base plates in bending this is the stress to compare with fy; the face is the one where bending and membrane stress add.'],
+ uts:['vm','Surface utilisation σvm,s / fy','The surface von Mises stress (bending + membrane) divided by fy, as a percentage.','Local values above 100 % next to a stiff footprint or bolt are common in an elastic analysis; a yield-line or effective-area check decides the design.'],
  w:['w','Deflection w','How far each point moves out of the plane, positive in the direction of the load (down for gravity). It is the primary unknown of the bending problem; everything else comes from its derivatives.','Check against serviceability limits, typically span/250 overall or span/500 after finishes. The info panel reports L/w using the shorter plan dimension.'],
  bx:['beta','Rotation βx','The rotation of the plate’s normal in the x–z plane (mrad). For a thin plate βx = −∂w/∂x, the negative slope in x. Zero along clamped edges and on lines of symmetry.','Large rotations at a support show it is acting as a pin; near zero rotation means the edge is effectively fixed.'],
  by:['beta','Rotation βy','The rotation of the normal in the y–z plane (mrad); for a thin plate βy = −∂w/∂y.','Large rotations at a support show it is acting as a pin; near zero rotation means the edge is effectively fixed.'],
@@ -1504,6 +1738,8 @@ function ex(o){const m=blankModel();Object.assign(m,o.base||{});let id=1;const I
  (o.outline||[]).forEach(([i,pre])=>{const P=shapePts(pl[i]);P.forEach((p,j)=>m.sups.push({id:I(),type:'line',pts:[p.slice(),P[(j+1)%P.length].slice()],pre,k:0}))});
  (o.sups||[]).forEach(s=>m.sups.push(Object.assign({id:I(),k:0},s)));(o.loads||[]).forEach(l=>m.loads.push(Object.assign({id:I()},l.whole!=null?{kind:'area',sid:pl[l.whole].id,q:l.q}:l)));
  (o.ground||[]).forEach(g=>m.sups.push({id:I(),type:'area',sid:pl[g.on||0].id,k:g.k,pre:'gnd'}));
+ (o.rigs||[]).forEach(r=>{const q=Object.assign({id:I(),rig:1,fx:0,fy:0,mz:0,P:0,tx:0,ty:0,fix:{}},r);if(r.hole!=null){q.sid=ho[r.hole].id;delete q.hole}m.rigs.push(q)});
+ (o.bolts||[]).forEach(b=>{const q=Object.assign({id:I(),kind:'bolt',fx:0,fy:0,P:0},b,{sid:ho[b.hole].id});delete q.hole;m.loads.push(q)});
  (o.cuts||[]).forEach(c=>m.cuts.push({id:I(),a:c[0],b:c[1],q:c[2]}));{/* notes go under the plate, left-aligned, so they never push the plate aside */const P=[];m.shapes.forEach(s=>P.push(...shapePts(s)));const x0=Math.min(...P.map(p=>p[0])),y0=Math.min(...P.map(p=>p[1])),sz=Math.max(Math.max(...P.map(p=>p[0]))-x0,Math.max(...P.map(p=>p[1]))-y0);let y=y0-.09*sz;
  (o.dims||[]).forEach(d=>{if(Math.min(d[0][1],d[1][1])<=y0+1e-9&&(d[2]||0)<0)y-=Math.abs(d[2])});(o.notes||[]).forEach(n=>{m.anns.push({id:I(),k:'text',pts:[[x0,y]],t:n[1],fs:n[2]||12});y-=.1*sz*(1+String(n[1]).split('\n').length*.35)})}(o.dims||[]).forEach(d=>m.anns.push({id:I(),k:'dim',pts:[d[0],d[1]],off:d[2]||.6}));return m}
 const PRESETS={
@@ -1541,13 +1777,26 @@ const PRESETS={
   f:()=>ex({mat:{E:210e6,nu:.3,t:.1,pre:'s355'},mesh:{h:.125},plates:[{rect:1,pts:R4(0,-.5,10,1)}],sups:[{type:'line',pts:[[0,-.5],[0,.5]],pre:'pin'}],loads:[{kind:'traction',pts:[[10,-.5],[10,.5]],qx:0,qy:-10}],cuts:[[[5,-.5],[5,.5],'sn']],notes:[[[0,1.2],'δ = PL³/3EI + PL/κGA = 1.92 mm (Timoshenko)']]})},
  dap:{g:'In-plane',t:'Dapped beam end',d:'A 600 mm deep precast beam with a halved (dapped) end bearing on a 300 mm nib. Tension concentrates at the re-entrant corner of the dap: the classic place for a crack and hanger steel.',tags:['in-plane','re-entrant corner','precast'],field:'s1',vec:1,mesh:{h:.04},
   f:()=>ex({mat:{t:.3},mesh:{h:.04},plates:[{pts:[[0,.3],[.4,.3],[.4,0],[4,0],[4,.6],[0,.6]]}],sups:[{type:'line',pts:[[0,.3],[.25,.3]],pre:'pin'},{type:'line',pts:[[3.75,0],[4,0]],pre:'rlx'}],loads:[{kind:'traction',pts:[[0,.6],[4,.6]],qx:0,qy:-60}],cuts:[[[.4,0],[.4,.6],'sn']]})},
+ fin:{g:'Connections',t:'Fin plate: beam end shear on three bolts',d:'A 10 mm S275 fin plate welded to a column flange, carrying a 150 kN beam reaction through three M20 bolts in bearing. The bearing stress concentrates at the bottom of each hole; the section cut beside the weld recovers V = 150 kN and the eccentricity moment.',tags:['connection','bolts','bearing','steel'],field:'ut',snap:.005,
+  f:()=>ex({mat:{E:210e6,nu:.3,t:.01,pre:'s275',fy:275},mesh:{h:.008,ref:24,gr:1.3},plates:[{rect:1,pts:R4(0,0,.1,.23)}],holes:[.045,.115,.185].map(y=>({circ:true,c:[.05,y],r:.011,n:32})),sups:[{type:'line',pts:[[0,0],[0,.23]],pre:'pin'}],
+   bolts:[0,1,2].map(i=>({hole:i,fx:0,fy:-50,P:0})),cuts:[[[.025,0],[.025,.23],'snt']],dims:[[[0,0],[.1,0],-.03]],
+   notes:[[[0,0],'Fin plate 100 × 230 × 10 mm, S275, welded along its left edge (u = v = 0).\nThree M20 bolts in Ø22 holes, 50 kN each in bearing (F / d·t = 227 MPa).\nThe cut 25 mm from the weld integrates to the 150 kN shear and\nthe 150 × 0.025 = 3.75 kNm moment of the bolt line about it.']]})},
+ gusset:{g:'Connections',t:'Gusset plate with a bracing bolt group',d:'A 12 mm S355 gusset welded to a beam above and a column to the left, carrying a 300 kN diagonal brace through four rigid bolts. The force spreads out from the bolts (Whitmore) and the cut across the plate integrates to the full brace force.',tags:['connection','rigid zones','bolt group','steel'],field:'ut',snap:.005,
+  f:()=>{const c=[.27,.09],d=[Math.SQRT1_2,-Math.SQRT1_2],n=[Math.SQRT1_2,Math.SQRT1_2],B=[];for(const a of[-.035,.035])for(const b of[-.03,.03])B.push([c[0]+a*d[0]+b*n[0],c[1]+a*d[1]+b*n[1]]);
+   return ex({mat:{E:210e6,nu:.3,t:.012,pre:'s355',fy:355},mesh:{h:.01,ref:24,gr:1.3},plates:[{pts:[[0,0],[.28,0],[.4,.12],[.4,.3],[0,.3]]}],holes:B.map(p=>({circ:true,c:p,r:.011,n:32})),
+    sups:[{type:'line',pts:[[0,.3],[.4,.3]],pre:'pin'},{type:'line',pts:[[0,0],[0,.3]],pre:'pin'}],rigs:B.map((p,i)=>({hole:i,fx:75*d[0],fy:75*d[1]})),cuts:[[[.1,0],[.4,.3],'sn']],
+    notes:[[[0,0],'Gusset 12 mm S355, welded to the beam (top) and column (left).\nBrace 300 kN at 45° through four M20 bolts, modelled as rigid zones\n(75 kN each). The cut separates the bolts from both welds, so it\nintegrates to the brace force: ∫Nn ds = 300 kN, ∫Nnt ds = 0.']]})}},
+ base:{g:'Connections',t:'Column base plate on grout',d:'A 450 × 450 × 30 mm S275 base plate on a stiff grout bed (Winkler springs), loaded through a rigid 260 mm column footprint with 900 kN and a 40 kNm tilting moment. The plate dishes beyond the footprint and the surface stress peaks at its edge.',tags:['connection','out of plane','rigid patch','Winkler','steel'],field:'uts',snap:.005,
+  f:()=>ex({mat:{E:210e6,nu:.3,t:.03,pre:'s275',fy:275},mesh:{h:.015,ref:16,gr:1.3},plates:[{rect:1,pts:R4(-.225,-.225,.45,.45)}],holes:[[-1,-1],[1,-1],[1,1],[-1,1]].map(([a,b])=>({circ:true,c:[.17*a,.17*b],r:.015,n:32})),ground:[{k:5e7}],
+   rigs:[{rect:true,pts:R4(-.13,-.13,.26,.26),P:900,tx:40}],cuts:[[[.13,-.225],[.13,.225],'Mn']],
+   notes:[[[0,0],'Base plate 450 × 450 × 30 mm, S275, on grout k = 50 000 MN/m³.\nColumn footprint 260 × 260 mm modelled as a rigid patch:\nP = 900 kN, Tx = 40 kNm (e = 44 mm < 450/6, so no uplift).\nThe ground reaction sums to 900 kN. Anchor holes Ø30 are unloaded.']]})},
  vnav:{g:'Verification',t:'Navier plate (thin, steel)',d:'Verification set-up: a 2 m square, 20 mm steel plate, simply supported, 10 kPa. t/a = 0.01 so the Mindlin plate behaves as a Kirchhoff plate: w = 0.00406qa⁴/D = 4.44 mm.',tags:['verification','closed form'],field:'w',mesh:{h:.1},
   f:()=>ex({mat:{E:200e6,nu:.3,t:.02,pre:'cust'},mesh:{h:.1},plates:[{rect:1,pts:R4(0,0,2,2)}],outline:[[0,'ss']],loads:[{whole:0,q:10}],cuts:[[[1,2],[1,0],'Mn']],notes:[[[2.2,2],'T&W-K Table 8 (ν = 0.3):\nw = 0.00406 qa⁴/D = 4.44 mm\nMx = My = 0.0479 qa² = 1.92 kNm/m']]})},
  vstrip:{g:'Verification',t:'Plate strip = beam (ν = 0)',d:'A 4 m strip spanning one way with ν = 0 is exactly a beam: w = 5qL⁴/384D and M = qL²/8. The section cut integrates to qL²b/8.',tags:['verification','beam'],field:'Mx',mesh:{h:.1},
   f:()=>ex({mat:{E:30e6,nu:0,t:.15,pre:'cust'},mesh:{h:.1},plates:[{rect:1,pts:R4(0,0,4,1)}],sups:[{type:'line',pts:[[0,0],[0,1]],pre:'ss'},{type:'line',pts:[[4,0],[4,1]],pre:'ss'}],loads:[{whole:0,q:10}],cuts:[[[2,1],[2,0],'Mn'],[[1,1],[1,0],'Qn']],notes:[[[0,1.4],'Beam: M = qL²/8 = 20 kNm/m, w = 5qL⁴/384D = 9.48 mm']]})},
  vwink:{g:'Verification',t:'Point load on Winkler ground',d:'A large thin plate on elastic ground with a central 100 kN load. Hertz’s solution for an infinite plate is w = P/8√(kD).',tags:['verification','Winkler'],field:'w',mesh:{h:.2},
   f:()=>ex({mat:{E:30e6,nu:.2,t:.1,pre:'cust'},mesh:{h:.2},plates:[{rect:1,pts:R4(-6,-6,12,12)}],ground:[{k:2e3}],loads:[{kind:'pt',p:[0,0],P:100}],cuts:[[[-6,0],[6,0],'w']],notes:[[[6.4,6],'Hertz: w = P/8√(kD) = 5.48 mm']]})}};
-function loadPreset(k){const p=PRESETS[k];if(!p)return;pushU();M=p.f();fixIds();sel=null;poly=null;sideOpen(null);hm.el=null;hm.step=null;hm.pin=null;O.field=p.field||'w';fieldUser=false;O.vec=!!p.vec;$('oVec').checked=O.vec;O.v3=false;$('o3d').checked=false;
+function loadPreset(k){const p=PRESETS[k];if(!p)return;pushU();M=p.f();fixIds();{const sn=$('snap'),v=String(p.snap||(modelSpan()<2.5?.01:.25));if([...sn.options].some(o=>o.value==v))sn.value=v}sel=null;poly=null;sideOpen(null);hm.el=null;hm.step=null;hm.pin=null;O.field=p.field||'w';fieldUser=false;O.vec=!!p.vec;$('oVec').checked=O.vec;O.v3=false;$('o3d').checked=false;
  setTool('sel');runSolve();if(M.cuts.length&&R&&!R.empty)sideOpen(M.cuts[0]);fit();buildFieldSel();$('pre').value='';toast('Loaded: '+p.t)}
 {const s=$('pre'),G={};Object.entries(PRESETS).forEach(([k,p])=>{(G[p.g]=G[p.g]||[]).push([k,p])});Object.entries(G).forEach(([g,L])=>{const og=document.createElement('optgroup');og.label=g;L.forEach(([k,p])=>{const o=document.createElement('option');o.value=k;o.textContent=p.t;og.appendChild(o)});s.appendChild(og)});s.onchange=()=>loadPreset(s.value)}
 /* ---------- thumbnails ---------- */
@@ -1560,6 +1809,7 @@ function thumb(m,w,h){const P=[];m.shapes.forEach(s=>P.push(...shapePts(s)));con
   else if(l.kind=='traction'){const a=l.pts[0],b=l.pts[1],m_=Math.hypot(l.qx,l.qy)||1,ux=l.qx/m_*14,uy=-l.qy/m_*14;[a,b,[(a[0]+b[0])/2,(a[1]+b[1])/2]].forEach(p=>s+='<line x1="'+f(X(p[0])-ux)+'" y1="'+f(Y(p[1])-uy)+'" x2="'+f(X(p[0]))+'" y2="'+f(Y(p[1]))+'" stroke="var(--acc)" stroke-width="2" marker-end=""/>')}});
  m.sups.forEach(o=>{if(o.type=='line')s+='<line x1="'+f(X(o.pts[0][0]))+'" y1="'+f(Y(o.pts[0][1]))+'" x2="'+f(X(o.pts[1][0]))+'" y2="'+f(Y(o.pts[1][1]))+'" stroke="'+(['pin','rlx','rly'].includes(o.pre)?'var(--acc)':'var(--neon2)')+'" stroke-width="'+(o.pre=='cl'?4:2.6)+'"/>';
   else if(o.type=='pt')s+='<rect x="'+f(X(o.p[0])-3.5)+'" y="'+f(Y(o.p[1])-3.5)+'" width="7" height="7" fill="var(--neon2)"/>';else if(o.type=='area')s+='<path d="'+pth(shapePts(m.shapes.find(x=>x.id===o.sid)||m.shapes[0]))+'" fill="none" stroke="var(--neon2)" stroke-dasharray="3 3" transform="translate(0 4)"/>'});
+ (m.rigs||[]).forEach(r=>{const Q=rigPts(m,r);if(Q)s+='<path d="'+pth(Q)+'" fill="var(--mem)" fill-opacity=".8"/>'});m.loads.forEach(l=>{if(l.kind!='bolt')return;const h=m.shapes.find(o=>o.id===l.sid);if(!h||!h.circ)return;const F=Math.hypot(l.fx||0,l.fy||0)||1;s+='<line x1="'+f(X(h.c[0]))+'" y1="'+f(Y(h.c[1]))+'" x2="'+f(X(h.c[0])+(l.fx||0)/F*12)+'" y2="'+f(Y(h.c[1])-(l.fy||0)/F*12)+'" stroke="var(--acc)" stroke-width="2.2"/>'});
  m.cuts.forEach(c=>s+='<line x1="'+f(X(c.a[0]))+'" y1="'+f(Y(c.a[1]))+'" x2="'+f(X(c.b[0]))+'" y2="'+f(Y(c.b[1]))+'" stroke="var(--neon3)" stroke-width="1.6" stroke-dasharray="6 3 1 3"/>');return s+'</svg>'}
 /* ---------- gallery ---------- */
 function showGal(){const ov=$('ovGal');if(!ov.dataset.b){ov.dataset.b=1;const G={};Object.entries(PRESETS).forEach(([k,p])=>{(G[p.g]=G[p.g]||[]).push([k,p])});
@@ -1579,7 +1829,7 @@ function showGuide(){const ov=$('ovGuide');if(!ov.dataset.b){ov.dataset.b=1;cons
   ['Look inside the solver','Open the stiffness matrix: hover an entry to see the element terms that build it, step through assembly, compare node orderings, inspect an element’s 12 × 12 matrix and its rigid-body modes. <kbd>M</kbd>',sv([0,1,2,3,4,5,6,7].map(i=>[0,1,2,3,4,5,6,7].map(j=>Math.abs(i-j)<=2?'<rect x="'+(60+j*10)+'" y="'+(10+i*10)+'" width="9" height="9" fill="'+(i==j?'var(--neon3)':'var(--neon2)')+'" opacity="'+(i==j?.9:.45)+'"/>':'').join('')).join('')+'<text x="146" y="54" class="tx">K u = F</text>')]];
  ov.innerHTML='<div class="dlg" role="dialog"><div class="dlgH"><p class="dlgK">Welcome</p><h2>Plate <span>Pusher</span> · finite elements for 2D plates</h2><p class="dlgL">Draw a slab, wall or plate, support and load it, and see how it carries load out of its plane (bending) and in its plane (membrane). Results update as you edit. Units are kN and m; stresses in MPa.</p><button class="dlgX" id="gdX">✕</button></div>'+
   '<div class="gdG">'+C.map(([t,p,s])=>'<div class="gs">'+s+'<div class="gsB"><h3>'+t+'</h3><p>'+p+'</p></div></div>').join('')+'</div>'+
-  '<div class="gdT"><span><b>Pan</b> drag empty space or right-drag</span><span><b>Zoom</b> scroll</span><span><b>Cancel</b> Esc or right-click</span><span><b>Undo</b> Ctrl+Z</span><span><b>Fit</b> F</span><span><b>Delete</b> Del</span></div>'+
+  '<div class="gdT"><span><b>Select a group</b> drag a box, Shift-click</span><span><b>Pan</b> right-drag</span><span><b>Zoom</b> scroll</span><span><b>Cancel</b> Esc or right-click</span><span><b>Undo</b> Ctrl+Z</span><span><b>Fit</b> F</span><span><b>Delete</b> Del</span></div>'+
   '<div class="gdF"><label><input type="checkbox" id="gdNo"> Don’t show this on start</label><button id="gdBlank">Blank canvas</button><button id="gdGal">▦ Examples gallery</button><button class="on" id="gdGo">Start with a simple slab</button></div></div>';
  const close=()=>{ov.hidden=true;try{localStorage.setItem('pp_noguide',$('gdNo').checked?'1':'')}catch(e){}};
  ov.onclick=e=>{if(e.target===ov)close()};$('gdX').onclick=close;$('gdGo').onclick=()=>{close();loadPreset('ss6')};$('gdGal').onclick=()=>{close();showGal()};$('gdBlank').onclick=()=>{close();newModel(true)}}
@@ -1589,8 +1839,8 @@ function openDlg(k,t,h){$('dK').textContent=k;$('dT').innerHTML=t;$('dB').innerH
 function closeDlg(){$('ovDlg').hidden=true}$('dX').onclick=closeDlg;$('ovDlg').onclick=e=>{if(e.target.id=='ovDlg')closeDlg()};
 function runVer(){openDlg('Verification','Closed-form <span>checks</span>','<p class="dlgL" style="margin:0">Running the suite: it meshes and solves about 25 models…</p>');setTimeout(()=>{const t0=performance.now(),out=runVerification();
  /* in the app: every example must satisfy equilibrium */
- const sv=M;out.push({h:'Every example: reactions balance the applied loads'});Object.entries(PRESETS).forEach(([k,p])=>{try{const m=p.f(),r=analyse(m);let e=0,f=0;if(r.hasB&&r.B.ok){let a=0,b=0;r.B.F.forEach((v,d)=>{if(d%3==0)a+=v});r.B.R.forEach((v,d)=>{if(d%3==0)b+=v});e=Math.max(e,Math.abs(a+b));f=Math.max(f,Math.abs(a))}
-  if(r.hasM&&r.Mm.ok){let a=0,b=0,c=0,d_=0;r.Mm.F.forEach((v,d)=>{d%2?b+=v:a+=v});r.Mm.R.forEach((v,d)=>{d%2?d_+=v:c+=v});e=Math.max(e,Math.abs(a+c),Math.abs(b+d_));f=Math.max(f,Math.abs(a),Math.abs(b))}
+ const sv=M;out.push({h:'Every example: reactions balance the applied loads'});Object.entries(PRESETS).forEach(([k,p])=>{try{const m=p.f(),r=analyse(m);let e=0,f=0;if(r.hasB&&r.B.ok){const q=sysSum(r.B),a=q.F.z,b=q.R.z;e=Math.max(e,Math.abs(a+b));f=Math.max(f,Math.abs(a))}
+  if(r.hasM&&r.Mm.ok){const q=sysSum(r.Mm),a=q.F.x,b=q.F.y,c=q.R.x,d_=q.R.y;e=Math.max(e,Math.abs(a+c),Math.abs(b+d_));f=Math.max(f,Math.abs(a),Math.abs(b))}
   out.push({name:p.t+': |ΣF + ΣR| ÷ |ΣF|',exp:0,got:e/(f||1),tol:1e-9,ok:e/(f||1)<=1e-9&&(r.hasB?r.B.ok:true)&&(r.hasM?r.Mm.ok:true),abs:true,ref:'equilibrium'})}catch(er){out.push({name:p.t+': '+er.message,exp:0,got:1,tol:0,ok:false,abs:true})}});M=sv;
  const n=out.filter(r=>!r.h).length,ok=out.filter(r=>!r.h&&r.ok).length,ms=performance.now()-t0;
  let h='<div class="vsum"><b class="'+(ok==n?'ok':'bad')+'" style="color:'+(ok==n?'#12d98a':'#ff3d5a')+'">'+ok+' / '+n+'</b> checks pass · '+Math.round(ms)+' ms</div><p class="dlgL" style="margin:0 0 6px">Each row builds a model, solves it with the same code the app uses, and compares a result with its textbook value. Tolerances reflect the mesh used: the slow-converging ones (a clamped edge moment, the stress at a hole) are noted.</p><table class="vt"><tr><th>Check</th><th>Expected</th><th>Plate Pusher</th><th>Error</th><th></th></tr>';
@@ -1606,7 +1856,7 @@ function showMeth(){openDlg('Method','Elements, conventions and <span>assumption
  '<h3>Mesh</h3><p>A structured grid follows every horizontal and vertical edge, support, load and refinement zone; elements are kept where their centre is on the plate, and boundary nodes are moved onto curved or sloping edges (reverted where that would distort an element badly). Refinement zones refine a band right across the plate. Results are computed at the Gauss points, extrapolated to the nodes and averaged; untick <b>Averaged</b> to see the element values and how much they jump, a direct sign of discretisation error.</p>'+
  '<h3>Solver</h3><p>The nodes are renumbered by reverse Cuthill–McKee and the equations are solved by a skyline (envelope) Cholesky factorisation. A zero or negative pivot signals a mechanism, reported with the DOF where it was found. Reactions are K u − F at the restrained DOFs; their sum is checked against the applied load.</p>'+
  '<h3>Limits</h3><ul><li>Linear elastic, isotropic, constant thickness, small deflections; no membrane–bending coupling (no large deflection, no eccentric stiffeners).</li><li>Point loads and point supports give a singular moment (and, in Mindlin theory, a singular shear deflection): the peak there grows as the mesh is refined. Read moments a short distance away, or spread the load over a patch.</li><li>Re-entrant corners and the corners of openings are stress singularities in an elastic model too.</li><li>Concrete cracking, creep and reinforcement are not modelled.</li></ul></div>')}
-function showKeys(){const k=TOOLS.map(([id,t,ic,key])=>'<tr><td><kbd>'+key.toUpperCase()+'</kbd></td><td>'+t+'</td></tr>').join('');openDlg('Keyboard','Keyboard <span>shortcuts</span>','<table class="vt" style="max-width:520px">'+k+'<tr><th class="g" colspan="2">General</th></tr><tr><td><kbd>Esc</kbd></td><td>cancel, then deselect, then Select tool</td></tr><tr><td><kbd>Enter</kbd> / double-click</td><td>close a polygon</td></tr><tr><td><kbd>Del</kbd></td><td>delete the selection</td></tr><tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Y</kbd></td><td>undo / redo</td></tr><tr><td><kbd>F</kbd></td><td>fit view</td></tr><tr><td><kbd>M</kbd></td><td>stiffness matrix</td></tr><tr><td><kbd>Shift</kbd></td><td>horizontal / vertical lines; whole outline with Line support</td></tr><tr><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td><td>save / open</td></tr><tr><td><kbd>?</kbd></td><td>welcome guide</td></tr></table>')}
+function showKeys(){const k=TOOLS.map(([id,t,ic,key])=>'<tr><td><kbd>'+key.toUpperCase()+'</kbd></td><td>'+t+'</td></tr>').join('');openDlg('Keyboard','Keyboard <span>shortcuts</span>','<table class="vt" style="max-width:520px">'+k+'<tr><th class="g" colspan="2">General</th></tr><tr><td><kbd>Esc</kbd></td><td>cancel, then deselect, then Select tool</td></tr><tr><td><kbd>Enter</kbd> / double-click</td><td>close a polygon</td></tr><tr><td><kbd>Del</kbd></td><td>delete the selection</td></tr><tr><td><kbd>Shift</kbd>+click · drag a box</td><td>add to the selection · select everything in the box (Shift adds)</td></tr><tr><td>drag a selected item</td><td>move the whole group</td></tr><tr><td><kbd>Ctrl</kbd>+<kbd>A</kbd></td><td>select all</td></tr><tr><td><kbd>Ctrl</kbd>+<kbd>C</kbd> / <kbd>V</kbd> / <kbd>D</kbd></td><td>copy · paste at the cursor · duplicate</td></tr><tr><td><kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd></td><td>nudge by the snap step (Shift ×5)</td></tr><tr><td>right-drag</td><td>pan</td></tr><tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Y</kbd></td><td>undo / redo</td></tr><tr><td><kbd>F</kbd></td><td>fit view</td></tr><tr><td><kbd>M</kbd></td><td>stiffness matrix</td></tr><tr><td><kbd>Shift</kbd></td><td>horizontal / vertical lines; whole outline with Line support</td></tr><tr><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td><td>save / open</td></tr><tr><td><kbd>?</kbd></td><td>welcome guide</td></tr></table>')}
 function openIO(){const txt=JSON.stringify({app:'Plate Pusher',v:1,model:JSON.parse(snapM(),(k,v)=>k[0]=='_'?undefined:v)});openDlg('Save / open','Save or open a <span>model</span>','<div class="io"><p class="dlgL" style="margin:0 0 8px">The model is plain JSON: geometry, supports, loads, cuts, notes and material. Copy the text and keep it in a .json file; open it again from the file or by pasting it below.</p><div class="bt"><button class="on" id="ioCp">Copy text</button><label class="fioL" style="gap:6px"><button id="ioOp">⬆ Open a file…</button><input type="file" id="ioF" accept=".json,application/json" hidden></label><button id="ioLd">Load the text below</button></div><textarea id="ioT">'+txt.replace(/</g,'&lt;')+'</textarea></div>');
   $('ioCp').onclick=()=>{try{navigator.clipboard.writeText(txt).then(()=>toast('Copied.'),()=>{$('ioT').select();toast('Copy was blocked: the text is selected, press Ctrl+C.',1)})}catch(e){$('ioT').select();toast('Copy was blocked: the text is selected, press Ctrl+C.',1)}};$('ioOp').onclick=()=>$('ioF').click();
  $('ioF').onchange=()=>{const f=$('ioF').files[0];if(!f)return;f.text().then(t=>{$('ioT').value=t;ioLoad(t)})};$('ioLd').onclick=()=>ioLoad($('ioT').value)}
@@ -1670,7 +1920,7 @@ function rpLab(pg,boxes,F,x,y,s,pt,o){o=o||{};const w=rpW(s,pt,o.f),h=pt*RPK,a=o
    Pusher v2.13's; this part supplies the plate content: geometry, supports, loads, the mesh, banded vector contour plots
    with a legend, section-cut diagrams, reactions, a results summary and the method. Units kN, m; values shown in the units
    of the result selector (mm, kNm/m, kN/m, MPa). */
-const VER='1.3';
+const VER='1.4';
 /* ---------- the model on paper ---------- */
 function rpBox(){let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;const a=p=>{x0=Math.min(x0,p[0]);x1=Math.max(x1,p[0]);y0=Math.min(y0,p[1]);y1=Math.max(y1,p[1])};
  M.shapes.forEach(s=>shapePts(s).forEach(a));if(x0>x1)return{x0:0,x1:1,y0:0,y1:1};return{x0,x1,y0,y1}}
@@ -1732,10 +1982,10 @@ function rpDims(pg,P,F,X,Y){const pts=[];rpPlates().forEach(s=>{if(s.circ){pts.p
  const u=a=>{const o=[];a.sort((p,q)=>p-q).forEach(v=>{if(!o.length||v-o[o.length-1]>1e-6)o.push(v)});return o},xs=u(pts.map(p=>+p[0].toFixed(4))),ys=u(pts.map(p=>+p[1].toFixed(4))),c='#555',b=F.b,tick=(x,y)=>rpL(pg,x-.8,y+.8,x+.8,y-.8,.25,c);
  const thin=(a,min)=>{/* keep the ends and drop interior positions closer than min mm on paper to the last one kept */const o=[a[0]];for(let i=1;i<a.length-1;i++)if(Math.abs(a[i]-o[o.length-1])*F.s>=min)o.push(a[i]);if(a.length>1){if(Math.abs(a[a.length-1]-o[o.length-1])*F.s<min&&o.length>1)o.pop();o.push(a[a.length-1])}return o};
  if(xs.length>1){const xx=thin(xs,6),yy=Y+F.h-4;xx.forEach(x=>{const[px,py]=P(x,b.y0);rpL(pg,px,py+2.2,px,yy+1.2,.1,c);tick(px,yy)});rpL(pg,P(xx[0],0)[0],yy,P(xx[xx.length-1],0)[0],yy,.15,c);
-  for(let i=1;i<xx.length;i++){const a=P(xx[i-1],0)[0],e=P(xx[i],0)[0],t=rpF(xx[i]-xx[i-1],2);if(e-a>rpW(t,6)+1)rpT(pg,(a+e)/2,yy-.8,t,6,{a:'c',c})}
-  if(xx.length>2){const t=rpF(xx[xx.length-1]-xx[0],2);rpT(pg,P(xx[xx.length-1],0)[0]+1.5,yy+1,t,6,{c,f:'B'})}}
+  for(let i=1;i<xx.length;i++){const a=P(xx[i-1],0)[0],e=P(xx[i],0)[0],t=rpLen(xx[i]-xx[i-1]);if(e-a>rpW(t,6)+1)rpT(pg,(a+e)/2,yy-.8,t,6,{a:'c',c})}
+  if(xx.length>2){const t=rpLen(xx[xx.length-1]-xx[0]);rpT(pg,P(xx[xx.length-1],0)[0]+1.5,yy+1,t,6,{c,f:'B'})}}
  if(ys.length>1){const yv=thin(ys,4.5),xx=X+5.5;yv.forEach(y=>{const[px,py]=P(b.x0,y);rpL(pg,xx-1.2,py,px-2.2,py,.1,c);tick(xx,py)});rpL(pg,xx,P(0,yv[0])[1],xx,P(0,yv[yv.length-1])[1],.15,c);
-  for(let i=1;i<yv.length;i++){const a=P(0,yv[i-1])[1],e=P(0,yv[i])[1],t=rpF(yv[i]-yv[i-1],2);if(a-e>3.2)rpT(pg,xx-.9,(a+e)/2+1,t,6,{a:'r',c})}}}
+  for(let i=1;i<yv.length;i++){const a=P(0,yv[i-1])[1],e=P(0,yv[i])[1],t=rpLen(yv[i]-yv[i-1]);if(a-e>3.2)rpT(pg,xx-.9,(a+e)/2+1,t,6,{a:'r',c})}}}
 function rpMeshDraw(pg,P,c,w){if(!R||R.empty)return;const N=R.mesh.nodes,seen=new Set();R.mesh.els.forEach(e=>{for(let i=0;i<4;i++){const a=e[i],b=e[(i+1)%4],k=a<b?a+'_'+b:b+'_'+a;if(seen.has(k))continue;seen.add(k);const A=P(N[a].x,N[a].y),B=P(N[b].x,N[b].y);rpL(pg,A[0],A[1],B[0],B[1],w,c)}})}
 /* ---------- loads on paper ---------- */
 function rpLoads(pg,P,c,ca,boxes,FB,o){const dp=o.dp;
@@ -1751,6 +2001,19 @@ function rpLoads(pg,P,c,ca,boxes,FB,o){const dp=o.dp;
   if(l.kind=='traction'){const[a,b]=l.pts,A=P(a[0],a[1]),B=P(b[0],b[1]),L=Math.hypot(B[0]-A[0],B[1]-A[1])||1,m=Math.hypot(l.qx,l.qy)||1,ux=l.qx/m,uy=-l.qy/m,len=5.5,n=Math.max(1,Math.round(L/4.5));
    rpL(pg,A[0]-ux*len,A[1]-uy*len,B[0]-ux*len,B[1]-uy*len,.25,ca);for(let i=0;i<=n;i++){const t=i/n,x=A[0]+t*(B[0]-A[0]),y=A[1]+t*(B[1]-A[1]);rpArrow(pg,x-ux*len,y-uy*len,x-ux*.4,y-uy*.4,ca,.2,1.3)}
    rpLab(pg,boxes,FB,(A[0]+B[0])/2-ux*(len+1.6),(A[1]+B[1])/2-uy*(len+1.6)+1,rpF(m,dp)+' kN/m',6.2,{a:ux>.3?'r':ux<-.3?'l':'c',c:ca,f:'B',bg:1,tries:[[0,0],[0,3.2],[0,-3.2],[5,0],[-5,0]]})}})}
+/* v1.4 rigid zones (hatched dark, J1, J2 …) and bolt bearing loads on paper */
+const rpRig=j=>'J'+(j+1);
+function rpRigs(pg,P,boxes,FB,o,lab){const c=o.mono?'#000':'#3b2a63';(M.rigs||[]).forEach((r,j)=>{const Q=rigPts(M,r),ref=rigRef(M,r);if(!Q||!ref)return;const ring=Q.map(p=>P(p[0],p[1]));rpP(pg,ring,{cl:1,fill:o.mono?'#bbbbbb':rpMix(c,.45),st:c,w:.25});rpHatchRings(pg,[ring],.9,Math.PI/4,'#ffffff',.1);
+  const[x,y]=P(ref[0],ref[1]);rpL(pg,x-1,y,x+1,y,.18,'#ffffff');rpL(pg,x,y-1,x,y+1,.18,'#ffffff');
+  if(lab){let x1=-1e9,y0=1e9;ring.forEach(p=>{x1=Math.max(x1,p[0]);y0=Math.min(y0,p[1])});rpLab(pg,boxes,FB,x1+1,y0-.4,rpRig(j),6,{f:'B',c,bg:1,tries:[[0,0],[0,3],[-4,0],[3,3],[0,-3]]})}})}
+function rpConLoads(pg,P,c,ca,boxes,FB,o){const dp=o.dp;
+ M.loads.forEach(l=>{if(l.kind!='bolt')return;const s=M.shapes.find(q=>q.id===l.sid);if(!s)return;const cc=s.circ?s.c:polyCen(shapePts(s)),[x,y]=P(cc[0],cc[1]),F=Math.hypot(l.fx||0,l.fy||0);
+  if(F>0){const ux=(l.fx||0)/F,uy=-(l.fy||0)/F;rpArrow(pg,x,y,x+ux*7,y+uy*7,ca,.3,1.7);rpLab(pg,boxes,FB,x+ux*8.4,y+uy*8.4+1,rpF(F,dp)+' kN',6,{a:ux>.3?'l':ux<-.3?'r':'c',c:ca,f:'B',bg:1,tries:[[0,0],[0,3],[0,-3],[4,0],[-4,0]]})}
+  if(l.P){rpZ(pg,x,y,.9,l.P>=0,c);rpLab(pg,boxes,FB,x+1.6,y-1.6,'P '+rpF(Math.abs(l.P),dp)+' kN',6,{c,f:'B',bg:1,tries:[[0,0],[0,4],[-10,0]]})}});
+ (M.rigs||[]).forEach((r,j)=>{const ref=rigRef(M,r);if(!ref)return;const[x,y]=P(ref[0],ref[1]),F=Math.hypot(+r.fx||0,+r.fy||0),t=[];
+  if(F>0){const ux=(+r.fx||0)/F,uy=-(+r.fy||0)/F;rpArrow(pg,x,y,x+ux*8,y+uy*8,ca,.35,2);t.push(rpF(F,dp)+' kN')}if(r.mz)t.push('Mz '+rpF(r.mz,dp)+' kNm');if(r.P){rpZ(pg,x,y,1.1,r.P>=0,c);t.push('P '+rpF(r.P,dp)+' kN')}if(r.tx)t.push('Tx '+rpF(r.tx,dp)+' kNm');if(r.ty)t.push('Ty '+rpF(r.ty,dp)+' kNm');
+  if(t.length)rpLab(pg,boxes,FB,x+2,y+3.2,rpRig(j)+': '+t.join(', '),6,{c:ca,f:'B',bg:1,tries:[[0,0],[0,3.4],[0,-6],[-20,0],[0,6.8]]})})}
+const rpFixT=f=>{f=f||{};const k=[['u','u'],['v','v'],['rz','θz'],['w','w'],['rx','βx'],['ry','βy']].filter(([q])=>f[q]).map(q=>q[1]);return k.length?k.join(', '):'free'};
 /* pressure symbol: a cross in a circle acts into the page (+z, down), a dot out of it */
 function rpZ(pg,x,y,r,pos,c){rpP(pg,rpCirc(x,y,r,16),{cl:1,st:c,w:.2,fill:'#ffffff'});if(pos){const d=r*.62;rpL(pg,x-d,y-d,x+d,y+d,.2,c);rpL(pg,x+d,y-d,x-d,y+d,.2,c)}else rpP(pg,rpCirc(x,y,r*.3,10),{cl:1,fill:c})}
 /* ---------- banded contours, drawn as vector polygons ---------- */
@@ -1803,13 +2066,13 @@ function rpDeformed(pg,P,F,o,X,Y){const ds=rpDefScaleM(F,o);if(!ds)return;const 
 function rpPadOf(kind){return kind=='geom'?{l:15,r:10,t:8,b:16}:kind=='load'?{l:11,r:11,t:9,b:9}:kind=='reac'?{l:14,r:14,t:9,b:9}:kind=='mesh'?{l:5,r:5,t:5,b:5}:{l:5,r:5,t:5.5,b:13}}
 function rpPlan(kind,o,hMax,w,key){w=w||RPG.MW;const F=rpFit(w,hMax,rpPadOf(kind));return{h:F.h,w,draw:(pg,Y,X0)=>{const X=X0==null?RPG.MX:X0,P=rpMap(F,X,Y),boxes=[],FB={X,Y,w:F.w,h:F.h},pal=o.mono?{L:'#000',A:'#000',R:'#000'}:{L:'#b3125d',A:'#5b2fc0',R:'#c0261f'};
   rpR(pg,X,Y,F.w,F.h,{st:'#c8c8c8',w:.15});
-  if(kind=='geom'){rpPlateDraw(pg,P,{fill:o.mono?'#eeeeee':'#eceaf6'},'fill');rpSups(pg,P,boxes,FB,o,false,false);rpPlateDraw(pg,P,{},'line');rpCuts(pg,P,boxes,FB,o);rpSups(pg,P,boxes,FB,o,true,M.sups.length<=16);rpDims(pg,P,F,X,Y);return}
+  if(kind=='geom'){rpPlateDraw(pg,P,{fill:o.mono?'#eeeeee':'#eceaf6'},'fill');rpSups(pg,P,boxes,FB,o,false,false);rpRigs(pg,P,boxes,FB,o,true);rpPlateDraw(pg,P,{},'line');rpCuts(pg,P,boxes,FB,o);rpSups(pg,P,boxes,FB,o,true,M.sups.length<=16);rpDims(pg,P,F,X,Y);return}
   if(kind=='mesh'){rpPlateDraw(pg,P,{fill:'#ffffff'},'fill');rpMeshDraw(pg,P,'#6a6a6a',.08);(M.mesh.zones||[]).forEach(z=>{if(z.pts)rpP(pg,z.pts.map(p=>P(p[0],p[1])),{cl:1,st:o.mono?'#000':'#0b7f8f',w:.3,d:[1,.7]})});rpPlateDraw(pg,P,{},'line');return}
-  if(kind=='load'){rpPlateDraw(pg,P,{fill:'#ffffff'},'fill');rpSups(pg,P,boxes,FB,o,true,false);rpPlateDraw(pg,P,{ow:.3},'line');rpLoads(pg,P,pal.L,pal.A,boxes,FB,o);return}
-  if(kind=='reac'){rpPlateDraw(pg,P,{fill:'#ffffff'},'fill');rpPlateDraw(pg,P,{ow:.25,oc:'#777'},'line');rpSups(pg,P,boxes,FB,o,false,false);if(M.sups.length<=12)rpReacLab(pg,P,pal.R,boxes,FB,o);return}
+  if(kind=='load'){rpPlateDraw(pg,P,{fill:'#ffffff'},'fill');rpSups(pg,P,boxes,FB,o,true,false);rpRigs(pg,P,boxes,FB,o,false);rpPlateDraw(pg,P,{ow:.3},'line');rpLoads(pg,P,pal.L,pal.A,boxes,FB,o);rpConLoads(pg,P,pal.L,pal.A,boxes,FB,o);return}
+  if(kind=='reac'){rpPlateDraw(pg,P,{fill:'#ffffff'},'fill');rpRigs(pg,P,boxes,FB,o,true);rpPlateDraw(pg,P,{ow:.25,oc:'#777'},'line');rpSups(pg,P,boxes,FB,o,false,false);if(M.sups.length<=12)rpReacLab(pg,P,pal.R,boxes,FB,o);return}
   /* contour plot of one result */
   const rg=rpRange(key,o);rpPlateDraw(pg,P,{fill:'#ffffff'},'fill');rpContour(pg,P,key,rg,o);if(o.mesh)rpMeshDraw(pg,P,'#4a4a4a',.05);if(o.iso)rpIso(pg,P,key,rg,o,'#222');
-  rpPlateDraw(pg,P,{ow:.3},'line');rpSups(pg,P,boxes,FB,o,true,o.num&&M.sups.length<=10);if(o.num)rpCuts(pg,P,boxes,FB,o);if(o.def&&FLD[key].s=='M')rpDeformed(pg,P,F,o,X,Y);if(o.vals)rpPeaks(pg,P,key,boxes,FB,o);rpLegend(pg,rg,F,X,Y,key)}}}
+  rpPlateDraw(pg,P,{ow:.3},'line');if((M.rigs||[]).length)rpRigs(pg,P,boxes,FB,Object.assign({},o,{mono:true}),false);rpSups(pg,P,boxes,FB,o,true,o.num&&M.sups.length<=10);if(o.num)rpCuts(pg,P,boxes,FB,o);if(o.def&&FLD[key].s=='M')rpDeformed(pg,P,F,o,X,Y);if(o.vals)rpPeaks(pg,P,key,boxes,FB,o);rpLegend(pg,rg,F,X,Y,key)}}}
 /* a row of one or two plan figures */
 function rpRow(list,o,hMax,half){const two=list.length>1||half,gap=3,w=two?(RPG.MW-gap)/2:RPG.MW,F=list.map(q=>rpPlan(q.kind,o,hMax,w,q.key)),h=Math.max(...F.map(f=>f.h));
  return{h,draw:(pg,Y)=>F.forEach((f,i)=>f.draw(pg,Y,RPG.MX+i*(w+gap)))}}
@@ -1834,22 +2097,22 @@ function rpCutFig(cu,o){const qs=rpCutQs(),hs=15,gap=2.2,top=6,h=top+qs.length*(
     rpP(pg,rpCirc(x,y,.45,10),{cl:1,fill:c});rpLab(pg,boxes,FB,x+.9,y+(up?-.8:2.6),t,5.8,{a:x>xb-25?'r':'l',c,f:'B',bg:1,tries:[[0,0],[-1.8,0],[0,up?3.4:-3.4]]})})});
   rpT(pg,xa,Y+h-1.6,'s = 0',5.4,{c:'#555'});rpT(pg,xb,Y+h-1.6,'s = '+rpF(L,2)+' m',5.4,{a:'r',c:'#555'})}}}
 /* ---------- content ---------- */
-const RPSHP=s=>s.circ?'Circle, r = '+rpF(s.r,3)+' m':(s.pts.length==4&&s.pts.every((p,i)=>{const q=s.pts[(i+1)%4];return Math.abs(p[0]-q[0])<1e-9||Math.abs(p[1]-q[1])<1e-9})?'Rectangle':'Polygon, '+s.pts.length+' corners');
+const RPSHP=s=>s.circ?(lenMM()?'Circle, Ø '+rpF(2e3*s.r,1)+' mm':'Circle, r = '+rpF(s.r,3)+' m'):(s.pts.length==4&&s.pts.every((p,i)=>{const q=s.pts[(i+1)%4];return Math.abs(p[0]-q[0])<1e-9||Math.abs(p[1]-q[1])<1e-9})?'Rectangle':'Polygon, '+s.pts.length+' corners');
 const rpNum=v=>Math.abs(v)>=1e5||(Math.abs(v)<.01&&v!=0)?v.toExponential(3).replace('e+','e'):v.toLocaleString('en-GB',{maximumSignificantDigits:4});
-const rpXY=p=>'('+rpF(p[0],2)+', '+rpF(p[1],2)+')';
+const rpXY=p=>lenMM()?'('+rpF(p[0]*1e3,1)+', '+rpF(p[1]*1e3,1)+')':'('+rpF(p[0],2)+', '+rpF(p[1],2)+')',rpLen=v=>lenMM()?rpF(v*1e3,v*1e3<100?1:0):rpF(v,2);
 function rpSupGeo(s){return s.type=='pt'?'Point at '+rpXY(s.p):s.type=='line'?rpXY(s.pts[0])+' – '+rpXY(s.pts[1])+(rpSupSide(s).inner?' (internal)':''):s.all?'Whole plate':s.sid!=null?'Plate / region '+s.sid:'Region, '+(s.pts||[]).length+' corners'}
 function rpLoadGeo(l){return l.kind=='area'?(l.all?'Whole plate':l.sid!=null?'Shape '+(M.shapes.findIndex(s=>s.id===l.sid)+1):'Patch, '+l.pts.length+' corners'):l.kind=='line'||l.kind=='traction'?rpXY(l.pts[0])+' – '+rpXY(l.pts[1]):'At '+rpXY(l.p)}
 function rpExt(key,avg){const f=R.F[key],N=R.mesh.nodes,E=R.mesh.els;let mx=null,mn=null;const see=(v,n)=>{if(!mx||v>mx.v)mx={v,n};if(!mn||v<mn.v)mn={v,n}};
  if(avg)f.n.forEach((v,n)=>see(v,n));else f.e.forEach((v,j)=>see(v,E[Math.floor(j/4)][j%4]));return{mx:{v:mx.v,p:[N[mx.n].x,N[mx.n].y]},mn:{v:mn.v,p:[N[mn.n].x,N[mn.n].y]}}}
-function rpEq(s){const S_=s=='B'?R.B:R.Mm;if(s=='B'){let F=0,Rr=0;S_.F.forEach((v,d)=>{if(d%3==0)F+=v});S_.R.forEach((v,d)=>{if(d%3==0)Rr+=v});return{F,R:-Rr,ok:Math.abs(F+Rr)<=1e-6*Math.max(1,Math.abs(F))}}
- let fx=0,fy=0,rx=0,ry=0;S_.F.forEach((v,d)=>{d%2?fy+=v:fx+=v});S_.R.forEach((v,d)=>{d%2?ry+=v:rx+=v});return{fx,fy,rx:-rx,ry:-ry,ok:Math.abs(fx+rx)+Math.abs(fy+ry)<=1e-6*Math.max(1,Math.abs(fx)+Math.abs(fy))}}
+function rpEq(s){const S_=s=='B'?R.B:R.Mm,SS=sysSum(S_);if(s=='B'){const F=SS.F.z,Rr=SS.R.z;return{F,R:-Rr,ok:Math.abs(F+Rr)<=1e-6*Math.max(1,Math.abs(F))}}
+ const fx=SS.F.x,fy=SS.F.y,rx=SS.R.x,ry=SS.R.y;return{fx,fy,rx:-rx,ry:-ry,ok:Math.abs(fx+rx)+Math.abs(fy+ry)<=1e-6*Math.max(1,Math.abs(fx)+Math.abs(fy))}}
 const RPDEF={co:'',co2:'',proj:'',job:'',subj:'2D plate analysis',by:'',chk:'',cdate:'',rev:'A',start:1,pre:'',notes:'',mono:false,num:true,vals:true,dp:2,size:'m',dsc:'',two:'2',bands:12,pal:'auto',avg:'n',iso:false,mesh:false,def:true,
- sel:{model:1,mesh:0,load:1,cur:0,defl:1,mom:1,prin:0,shear:0,wa:1,disp:1,memf:1,stress:1,cuts:1,reac:1,sum:1,meth:1,notes:1}};
+ sel:{model:1,mesh:0,load:1,cur:0,defl:1,mom:1,prin:0,shear:0,wa:1,disp:1,memf:1,stress:1,util:1,cuts:1,reac:1,sum:1,meth:1,notes:1}};
 const RPITEMS=[['model','Model – plates, material, supports and mesh'],['mesh','Finite-element mesh drawing'],['load','Loading diagram and load schedule'],['cur','The result shown on the canvas'],
  ['defl','Out-of-plane: deflection w'],['mom','Out-of-plane: moments Mx, My, Mxy'],['prin','Out-of-plane: principal moments M1, M2'],['shear','Out-of-plane: transverse shear Qx, Qy, |Q|'],['wa','Out-of-plane: Wood–Armer design moments'],
- ['disp','In-plane: displacement |u| and deformed shape'],['memf','In-plane: membrane forces Nx, Ny, Nxy'],['stress','In-plane: principal and von Mises stresses'],
+ ['disp','In-plane: displacement |u| and deformed shape'],['memf','In-plane: membrane forces Nx, Ny, Nxy'],['stress','In-plane: principal and von Mises stresses'],['util','Steel: von Mises utilisation σvm / fy'],
  ['cuts','Section cuts – diagrams and resultants'],['reac','Support reactions and equilibrium check'],['sum','Results summary – extremes of every result'],['meth','Analysis method and diagnostics'],['notes','Notes (text below)']];
-const RPRES=['defl','mom','wa','disp','memf','stress','cuts','reac','sum'];
+const RPRES=['defl','mom','wa','disp','memf','stress','util','cuts','reac','sum'];
 function rpDiagFS(st){const e=rpEsc,sel=(k,l,opts)=>'<label class="rpF"><span>'+l+'</span><select data-k="'+k+'">'+opts.map(([v,t])=>'<option value="'+v+'"'+(String(st[k])==String(v)?' selected':'')+'>'+t+'</option>').join('')+'</select></label>',
   ck=(k,l)=>'<label><input type="checkbox" data-k="'+k+'"'+(st[k]?' checked':'')+'><span>'+l+'</span></label>';
  return'<fieldset class="rpC"><legend>Diagrams</legend>'+sel('mono','Colour',[[0,'Colour'],[1,'Black and white']]).replace('value="0" selected','value="0"'+(st.mono?'':' selected')).replace('value="1"','value="1"'+(st.mono?' selected':''))+
@@ -1872,23 +2135,28 @@ function rpBlocks(o){const B=[],dp=o.dp,ok=!!(R&&!R.empty),hM=o.size=='s'?62:o.s
  const nP=rpPlates().length,nH=rpHoles().length,mat=M.mat,D=mat.E*mat.t**3/(12*(1-mat.nu*mat.nu));
  if(S.model){H('Structural model');
   Pp('Plane plate of '+nP+' plate outline'+(nP==1?'':'s')+(nH?' with '+nH+' opening'+(nH==1?'':'s'):'')+', analysed by the finite-element method for out-of-plane (bending) and in-plane (membrane) loading on the same mesh. Units: kN, m; deflections in mm, moments in kNm/m, shears and membrane forces in kN/m, stresses in MPa.'+(ok&&R.hasB&&!R.hasM?' Only out-of-plane load is applied, so no in-plane results are reported.':ok&&R.hasM&&!R.hasB?' Only in-plane load is applied, so no bending results are reported.':''));
-  Fg(h=>rpPlan('geom',o,h==null?hM:h),'Plate geometry, supports'+(M.cuts.length?' and section cuts':'')+' (dimensions in m'+(M.sups.length>16?'; the '+M.sups.length+' supports are listed in the table':'')+')',[{l:'Plates',v:String(nP)},{l:'Supports',v:String(M.sups.length)}]);
-  Tb('Plates and openings',[{h:'Item',w:22},{h:'Shape',w:46},{h:'Area (m²)',w:24,a:'r'},{h:'Extent x × y (m)',w:42,a:'r'}],M.shapes.filter(s=>s.kind=='plate'||s.kind=='hole').map(s=>{const P=shapePts(s),xs=P.map(p=>p[0]),ys=P.map(p=>p[1]);
-   return[(s.kind=='plate'?'Plate ':'Opening ')+(M.shapes.filter(q=>q.kind==s.kind).indexOf(s)+1),RPSHP(s),f3(Math.abs(polyArea(P))),f3(Math.max(...xs)-Math.min(...xs))+' × '+f3(Math.max(...ys)-Math.min(...ys))]}));
-  Pp('Material: '+((MATS[mat.pre]||[''])[0]||'Custom')+'. E = '+rpNum(mat.E/1e3)+' MPa, ν = '+mat.nu+', thickness t = '+rpF(mat.t*1000,0)+' mm; flexural rigidity D = Et³/12(1 − ν²) = '+rpNum(D)+' kNm, membrane rigidity Et/(1 − ν²) = '+rpNum(mat.E*mat.t/(1-mat.nu*mat.nu))+' kN/m.',{out:[{l:'t',v:rpF(mat.t*1000,0)+' mm'},{l:'D',v:rpNum(D)+' kNm'}]});
-  Tb('Supports',[{h:'Ref.',w:10},{h:'Type',w:50},{h:'Location (m)',w:62},{h:'Stiffness',w:28,a:'r'}],M.sups.map((s,i)=>[rpRef(i),(SUPP[s.pre]||{lab:s.pre}).lab,rpSupGeo(s),s.k>0?rpNum(s.k)+(s.type=='area'?' kN/m³':s.type=='line'?' kN/m²':' kN/m'):'–']),null,
+  Fg(h=>rpPlan('geom',o,h==null?hM:h),'Plate geometry, supports'+(M.cuts.length?' and section cuts':'')+' (dimensions in '+LU()+(M.sups.length>16?'; the '+M.sups.length+' supports are listed in the table':'')+')',[{l:'Plates',v:String(nP)},{l:'Supports',v:String(M.sups.length)}]);
+  Tb('Plates and openings',[{h:'Item',w:22},{h:'Shape',w:46},{h:'Area ('+LU()+'²)',w:24,a:'r'},{h:'Extent x × y ('+LU()+')',w:42,a:'r'}],M.shapes.filter(s=>s.kind=='plate'||s.kind=='hole').map(s=>{const P=shapePts(s),xs=P.map(p=>p[0]),ys=P.map(p=>p[1]);
+   return[(s.kind=='plate'?'Plate ':'Opening ')+(M.shapes.filter(q=>q.kind==s.kind).indexOf(s)+1),RPSHP(s),f3(Math.abs(polyArea(P))*(lenMM()?1e6:1)),rpLen(Math.max(...xs)-Math.min(...xs))+' × '+rpLen(Math.max(...ys)-Math.min(...ys))]}));
+  Pp('Material: '+((MATS[mat.pre]||[''])[0]||'Custom')+(mat.fy>0?', fy = '+mat.fy+' MPa':'')+'. E = '+rpNum(mat.E/1e3)+' MPa, ν = '+mat.nu+', thickness t = '+rpF(mat.t*1000,0)+' mm; flexural rigidity D = Et³/12(1 − ν²) = '+rpNum(D)+' kNm, membrane rigidity Et/(1 − ν²) = '+rpNum(mat.E*mat.t/(1-mat.nu*mat.nu))+' kN/m.',{out:[{l:'t',v:rpF(mat.t*1000,0)+' mm'},{l:'D',v:rpNum(D)+' kNm'}]});
+  Tb('Supports',[{h:'Ref.',w:10},{h:'Type',w:50},{h:'Location ('+LU()+')',w:62},{h:'Stiffness',w:28,a:'r'}],M.sups.map((s,i)=>[rpRef(i),(SUPP[s.pre]||{lab:s.pre}).lab,rpSupGeo(s),s.k>0?rpNum(s.k)+(s.type=='area'?' kN/m³':s.type=='line'?' kN/m²':' kN/m'):'–']),null,
    {note:'w is the out-of-plane deflection, β the rotation of the normal (βt about the line), u and v the in-plane displacements. A spring stiffness on a line is per metre of line; elastic ground is a Winkler modulus.'});
-  if(ok){const zs=(M.mesh.zones||[]);Pp('Mesh: '+R.mesh.els.length.toLocaleString('en-GB')+' four-node quadrilateral elements and '+R.mesh.nodes.length.toLocaleString('en-GB')+' nodes, target element size h = '+rpF(M.mesh.h*1000,0)+' mm'+(zs.length?', refined in '+zs.length+' zone'+(zs.length==1?'':'s')+' ('+zs.map(z=>rpF(z.h*1000,0)+' mm').join(', ')+')':'')+'.',{out:[{l:'Elements',v:R.mesh.els.length.toLocaleString('en-GB')}]})}}
+  if((M.rigs||[]).length)Tb('Rigid zones (bolts, pins, inserts, footprints)',[{h:'Ref.',w:10},{h:'Region',w:46},{h:'Nodes',w:14,a:'r'},{h:'Restrained',w:32},{h:'Centre ('+LU()+')',w:36,a:'r'}],M.rigs.map((r,j)=>{const s=r.sid!=null?M.shapes.find(q=>q.id===r.sid):null,ref=rigRef(M,r)||[0,0];
+   return[rpRig(j),s?'Edge of opening '+(rpHoles().indexOf(s)+1)+(s.circ?' (Ø '+rpLen(2*s.r)+')':''):r.circ?'Circular patch Ø '+rpLen(2*r.r):'Rectangular patch',ok&&R.rigInfo&&R.rigInfo[j]?String(R.rigInfo[j].nodes.length):'–',rpFixT(r.fix),rpXY(ref)]}),null,
+   {note:'Every mesh node of a rigid zone follows the rigid-body motion of its centre (u, v, θz in plane; w, βx, βy out of plane); loads and restraints act at the centre. The constraint is applied exactly by eliminating the tied degrees of freedom.'});
+  if(ok){const zs=(M.mesh.zones||[]);Pp('Mesh: '+R.mesh.els.length.toLocaleString('en-GB')+' four-node quadrilateral elements and '+R.mesh.nodes.length.toLocaleString('en-GB')+' nodes, target element size h = '+rpF(M.mesh.h*1000,0)+' mm'+(zs.length?', refined in '+zs.length+' zone'+(zs.length==1?'':'s')+' ('+zs.map(z=>rpF(z.h*1000,z.h<.01?1:0)+' mm').join(', ')+')':'')+(R.mesh.auto?', refined automatically round '+R.mesh.auto+' opening'+(R.mesh.auto==1?'':'s')+' ('+M.mesh.ref+' elements round each)':'')+(M.mesh.gr>1?', graded at ×'+M.mesh.gr+' per element':'')+'.',{out:[{l:'Elements',v:R.mesh.els.length.toLocaleString('en-GB')}]})}}
  if(S.mesh&&ok){H('Finite-element mesh');Fg(h=>rpPlan('mesh',o,h==null?hM:h),'Finite-element mesh'+((M.mesh.zones||[]).length?' (refinement zones dashed)':''),[{l:'Nodes',v:R.mesh.nodes.length.toLocaleString('en-GB')}])}
- if(S.load){H('Loading');const ld=M.loads;if(!ld.length)Pp('No loads are applied.');else{
+ if(S.load){H('Loading');const ld=M.loads;if(!ld.length&&!(M.rigs||[]).some(r=>r.fx||r.fy||r.mz||r.P||r.tx||r.ty))Pp('No loads are applied.');else{
    Pp('Out-of-plane loads act normal to the plate and are positive in +z (into the page, downwards for gravity load): pressure q in kPa, line loads p in kN/m and point loads P in kN; ⊗ marks a load into the page and ⊙ one out of it. In-plane forces and edge tractions act in the plane of the plate in the directions drawn.'.replace('⊗','a cross').replace('⊙','a dot'));
-   let qz=0,fx=0,fy=0;ld.forEach((l,i)=>{const I=ok&&R.loadInfo[i]||{};if(I.tot)qz+=I.tot;if(I.tx)fx+=I.tx;if(I.ty)fy+=I.ty});const out=[];if(ok&&ld.some(l=>l.kind=='area'||l.kind=='line'||l.kind=='pt'))out.push({l:'Total out-of-plane',v:f(qz)+' kN'});if(ok&&ld.some(l=>l.kind=='force'||l.kind=='traction'))out.push({l:'Total in-plane Fx, Fy',v:f(fx)+', '+f(fy)+' kN'});
+   let qz=0,fx=0,fy=0;ld.forEach((l,i)=>{const I=ok&&R.loadInfo[i]||{};if(I.tot)qz+=I.tot;if(I.tx)fx+=I.tx;if(I.ty)fy+=I.ty});const RL=(M.rigs||[]).filter(r=>r.fx||r.fy||r.mz||r.P||r.tx||r.ty);RL.forEach(r=>{qz+=+r.P||0;fx+=+r.fx||0;fy+=+r.fy||0});const out=[];if(ok&&(ld.some(l=>l.kind=='area'||l.kind=='line'||l.kind=='pt'||l.kind=='bolt'&&l.P)||RL.some(r=>r.P)))out.push({l:'Total out-of-plane',v:f(qz)+' kN'});if(ok&&(ld.some(l=>l.kind=='force'||l.kind=='traction'||l.kind=='bolt'&&(l.fx||l.fy))||RL.some(r=>r.fx||r.fy)))out.push({l:'Total in-plane Fx, Fy',v:f(fx)+', '+f(fy)+' kN'});
    Fg(h=>rpPlan('load',o,h==null?hM:h),'Applied loads',out);
-   const KN={area:'Pressure q',line:'Line load p',pt:'Point load P',force:'In-plane force',traction:'Edge traction'};
-   Tb('Load schedule',[{h:'Load',w:11},{h:'Type',w:30},{h:'Value',w:34,a:'r'},{h:'Location (m)',w:52},{h:'Total',w:28,a:'r'}],ld.map((l,i)=>{const I=ok&&R.loadInfo[i]||{};
+   const KN={area:'Pressure q',line:'Line load p',pt:'Point load P',force:'In-plane force',traction:'Edge traction',bolt:'Bolt bearing'};
+   Tb('Load schedule',[{h:'Load',w:11},{h:'Type',w:30},{h:'Value',w:34,a:'r'},{h:'Location ('+LU()+')',w:52},{h:'Total',w:28,a:'r'}],ld.map((l,i)=>{const I=ok&&R.loadInfo[i]||{};
+    if(l.kind=='bolt'){const s=M.shapes.find(q=>q.id===l.sid);return[String(i+1),KN.bolt,f(l.fx||0)+', '+f(l.fy||0)+' kN'+(l.P?'; P '+f(l.P):''),s?'Opening '+(rpHoles().indexOf(s)+1)+' at '+rpXY(s.circ?s.c:polyCen(shapePts(s))):'–',(I.tx!=null?f(I.tx)+', '+f(I.ty)+' kN':'–')+(l.P?'; '+f(I.tot||0)+' kN':'')]}
     const v=l.kind=='area'?f(l.q)+' kPa':l.kind=='line'?f(l.p)+' kN/m':l.kind=='pt'?f(l.P)+' kN':l.kind=='force'?f(l.fx)+', '+f(l.fy)+' kN':f(l.qx)+', '+f(l.qy)+' kN/m';
     const t=l.kind=='force'||l.kind=='traction'?(I.tx!=null?f(I.tx)+', '+f(I.ty)+' kN':'–'):(I.tot!=null?f(I.tot)+' kN':'–');return[String(i+1),KN[l.kind]||l.kind,v,rpLoadGeo(l),t]}),null,
-    {note:'Totals are integrated over the part of each load that lies on the plate (an opening carries no load). In-plane values are given as x, y components.'})}}
+    {note:'Totals are integrated over the part of each load that lies on the plate (an opening carries no load). In-plane values are given as x, y components. A bolt in bearing pushes on the half of its hole facing the force with a cosine distribution of radial pressure.'});
+   if(RL.length)Tb('Loads on rigid zones (at the centre)',[{h:'Zone',w:11},{h:'Fx, Fy (kN)',w:34,a:'r'},{h:'Mz (kNm)',w:22,a:'r'},{h:'P (kN)',w:20,a:'r'},{h:'Tx, Ty (kNm)',w:30,a:'r'},{h:'Centre ('+LU()+')',w:38,a:'r'}],RL.map(r=>{const j=M.rigs.indexOf(r);return[rpRig(j),f(+r.fx||0)+', '+f(+r.fy||0),f(+r.mz||0),f(+r.P||0),f(+r.tx||0)+', '+f(+r.ty||0),rpXY(rigRef(M,r)||[0,0])]}),null,{note:'Mz is anticlockwise; P acts in +z; Tx tilts the zone so its +x side moves down (+z), Ty likewise for +y.'})}}
  if(S.cur&&ok&&O.field!='none'&&FLD[O.field]&&(FLD[O.field].s=='B'?R.hasB:R.hasM)){const k=O.field,s=FLD[k].s;H('Result on the canvas: '+FLD[k].lab);if(!(s=='B'?okB:okM))noRes(s);else{Pp(DESC[k]?String(DESC[k][2]).replace(/<[^>]+>/g,'').replace(/&nbsp;/g,' '):FLD[k].lab);cplots([k])}}
  const sysHead=(on,title,s,txt,keys)=>{if(!on||ok&&!(s=='B'?R.hasB:R.hasM))return;H(title);if(!(s=='B'?okB:okM)){noRes(s);return}if(txt)Pp(txt);cplots(keys)};
  sysHead(S.defl,'Deflection','B','Out-of-plane deflection w, positive in +z (the direction of positive load). The peak is marked; '+(o.avg?'values are averaged at the nodes.':'values are the unaveraged element-corner values.'),['w']);
@@ -1900,27 +2168,35 @@ function rpBlocks(o){const B=[],dp=o.dp,ok=!!(R&&!R.empty),hM=o.size=='s'?62:o.s
  sysHead(S.disp,'In-plane displacement','M','In-plane displacement magnitude |u| = √(ux² + uy²)'+(o.def?', with the deformed outline of the plate drawn magnified.':'.'),['um']);
  sysHead(S.memf,'Membrane forces','M','Membrane forces per unit width: Nx and Ny are the normal forces in x and y (tension positive) and Nxy the in-plane shear.',['Nx','Ny','Nxy']);
  sysHead(S.stress,'In-plane stresses','M','Principal stresses σ1 ≥ σ2 (tension positive) and the von Mises equivalent stress σvm = √(σ1² − σ1σ2 + σ2²), with σ = N / t averaged through the thickness.',['s1','s2','svm']);
+ if(S.util&&ok&&(R.hasB||R.hasM)){H('Steel check: von Mises stress and utilisation');const fy=M.mat.fy;
+  if(!(fy>0))Pp('No yield strength fy is set for the material, so no utilisation is reported. Choose a steel grade or type fy in the plate properties.');
+  else{Pp('Utilisation is the von Mises equivalent stress divided by the yield strength fy = '+fy+' MPa (no partial factor). In plane σvm uses the membrane stresses N / t; out of plane the surface value adds the bending stresses 6M / t² on the worse face. Peaks at the edges of bolt holes and re-entrant corners are elastic stress concentrations: local yielding there redistributes, so compare the extent of the region above 100 % rather than the peak alone.');
+   if(okM){cplots(['svm','ut']);const e=rpExt('ut',o.avg);Pp('In plane: peak utilisation '+f(e.mx.v*100)+' % at '+rpXY(e.mx.p)+'.',{out:[{l:'σvm / fy (in plane)',v:f(e.mx.v*100)+' %'}]})}
+   if(okB){cplots(['svs','uts']);const e=rpExt('uts',o.avg);Pp('Surface (bending + membrane): peak utilisation '+f(e.mx.v*100)+' % at '+rpXY(e.mx.p)+'.',{out:[{l:'σvm,s / fy',v:f(e.mx.v*100)+' %'}]})}}}
  if(S.cuts&&M.cuts.length){H('Section cuts');if(!ok||!okB&&!okM)noRes(okB?'M':'B');else{
    Pp('Results sampled along each cut at 161 points. n is the left-hand normal of the cut (looking from its start to its end); Mn is the bending moment and Qn the shear on the section, Nn the normal and Nnt the shear membrane force. w is drawn downwards when positive, the others upwards. Resultants are integrated along the part of the cut that lies on the plate.');
    const rows=[];M.cuts.forEach(cu=>{const d=cutSample(R,cu.a,cu.b,o.avg),r=d.res,out=[];if(okB){out.push({l:'∫Mn ds',v:f(r.Mn)+' kNm'},{l:'∫Qn ds',v:f(r.Qn)+' kN'})}if(okM)out.push({l:'∫Nn ds',v:f(r.Nn)+' kN'});
-    Fg(()=>rpCutFig(cu,o),'Section cut '+rpCut(cu)+' – '+rpCutQs().map(k=>RPCQ[k].s).join(', ')+' along the cut',out);rows.push([rpCut(cu),f3(d.ln),okB?f(r.Mn):'–',okB?f(r.Mnt):'–',okB?f(r.Qn):'–',okM?f(r.Nn):'–',okM?f(r.Nnt):'–',okM?f(r.Mz):'–'])});
-   Tb('Section-cut resultants',[{h:'Cut',w:10},{h:'On plate (m)',w:19,a:'r'},{h:'∫Mn (kNm)',w:19,a:'r'},{h:'∫Mnt (kNm)',w:19,a:'r'},{h:'∫Qn (kN)',w:18,a:'r'},{h:'∫Nn (kN)',w:18,a:'r'},{h:'∫Nnt (kN)',w:18,a:'r'},{h:'Mz (kNm)',w:18,a:'r'}],rows,null,{note:'Mz is the in-plane moment of Nn about the centre of the on-plate length of the cut.'})}}
+    Fg(()=>rpCutFig(cu,o),'Section cut '+rpCut(cu)+' – '+rpCutQs().map(k=>RPCQ[k].s).join(', ')+' along the cut',out);rows.push([rpCut(cu),rpLen(d.ln),okB?f(r.Mn):'–',okB?f(r.Mnt):'–',okB?f(r.Qn):'–',okM?f(r.Nn):'–',okM?f(r.Nnt):'–',okM?f(r.Mz):'–'])});
+   Tb('Section-cut resultants',[{h:'Cut',w:10},{h:'On plate ('+LU()+')',w:19,a:'r'},{h:'∫Mn (kNm)',w:19,a:'r'},{h:'∫Mnt (kNm)',w:19,a:'r'},{h:'∫Qn (kN)',w:18,a:'r'},{h:'∫Nn (kN)',w:18,a:'r'},{h:'∫Nnt (kN)',w:18,a:'r'},{h:'Mz (kNm)',w:18,a:'r'}],rows,null,{note:'Mz is the in-plane moment of Nn about the centre of the on-plate length of the cut.'})}}
  if(S.reac){H('Support reactions');if(!ok||!okB&&!okM)noRes(R&&R.hasB?'B':'M');else{
+   if(!M.sups.length&&!(M.rigs||[]).some(r=>Object.values(r.fix||{}).some(Boolean)))Pp('There are no supports.');
    Pp('Reactions are the forces the supports exert on the plate. Out-of-plane reactions R are positive when they oppose a positive (downward) load; in-plane reactions Rx, Ry act in +x and +y. Where two supports share a node its reaction is divided between them. q max is the peak reaction per metre along a line support.');
    Fg(h=>rpPlan('reac',o,h==null?hM:h),'Support reactions'+(M.sups.length>12?' (with '+M.sups.length+' supports the values are given in the table only)':''),M.sups.map((s,i)=>{const r=rpSupRes(i);return r&&r.tB?{l:rpRef(i)+' R',v:f(r.o.z)+' kN'}:null}).filter(Boolean).slice(0,8));
    let tz=0,tx=0,ty=0;const rows=M.sups.map((s,i)=>{const r=rpSupRes(i);if(!r)return null;tz+=okB?r.o.z:0;tx+=okM?r.o.x:0;ty+=okM?r.o.y:0;return[rpRef(i),(SUPP[s.pre]||{lab:s.pre}).lab,s.type=='area'?'–':String((R.supInfo[i]||{nodes:[]}).nodes.length),okB?f(r.o.z):'–',okB&&s.type=='line'?f(r.o.qmax):'–',okM?f(r.o.x):'–',okM?f(r.o.y):'–']}).filter(Boolean);
-   rows.push(['Σ','','',okB?f(tz):'',' ',okM?f(tx):'',okM?f(ty):'']);
+   rows.push(['Σ','','',okB?f(tz):'',' ',okM?f(tx):'',okM?f(ty):'']);if(!M.sups.length)rows.length=0;
    Tb('Support reactions',[{h:'Ref.',w:10},{h:'Type',w:46},{h:'Nodes',w:12,a:'r'},{h:'R (kN)',w:20,a:'r'},{h:'q max (kN/m)',w:22,a:'r'},{h:'Rx (kN)',w:18,a:'r'},{h:'Ry (kN)',w:18,a:'r'}],rows,null,{boldLast:1});
+   const RR=(M.rigs||[]).map((r,j)=>({r,j,o:rigReaction(j)})).filter(q=>q.o&&q.o.any);
+   if(RR.length)Tb('Rigid-zone reactions (at the centre)',[{h:'Zone',w:11},{h:'Restrained',w:30},{h:'Nodes',w:13,a:'r'},{h:'R (kN)',w:19,a:'r'},{h:'Rx (kN)',w:19,a:'r'},{h:'Ry (kN)',w:19,a:'r'},{h:'Mz (kNm)',w:19,a:'r'}],RR.map(q=>[rpRig(q.j),rpFixT(q.r.fix),String(q.o.n),okB?f(q.o.z):'–',okM?f(q.o.x):'–',okM?f(q.o.y):'–',okM?f(q.o.mz):'–']),null,{note:'A restrained rigid zone (a fixed bolt, for example) carries these forces from its support into the plate; they are included in the equilibrium check below.'});
    const t=[],out=[];if(okB){const e=rpEq('B');t.push('Out-of-plane: applied load '+f(e.F)+' kN, reactions '+f(e.R)+' kN, residual '+rpF(e.F-e.R,4)+' kN');out.push({l:'Out-of-plane equilibrium',v:e.ok?'OK':'CHECK'})}
    if(okM){const e=rpEq('M');t.push('In-plane: applied ΣFx = '+f(e.fx)+', ΣFy = '+f(e.fy)+' kN against reactions ΣRx = '+f(e.rx)+', ΣRy = '+f(e.ry)+' kN');out.push({l:'In-plane equilibrium',v:e.ok?'OK':'CHECK'})}
    Pp('Equilibrium check. '+t.join('; ')+'. '+(out.every(q=>q.v=='OK')?'Equilibrium satisfied.':'Check the model: the reactions do not balance the loads.'),{out})}}
  if(S.sum){H('Results summary');if(!okB&&!okM)noRes(R&&R.hasB?'B':'M');else{
-   Pp('Largest and smallest value of every result over the plate, '+(o.avg?'from the nodal averages':'from the unaveraged element-corner values')+', with the position (x, y) in m.');
-   const rows=[];Object.keys(FLD).forEach(k=>{const F_=FLD[k];if(F_.s=='B'?!okB:!okM)return;const e=rpExt(k,o.avg);rows.push([F_.lab,F_.u,f(e.mx.v*F_.f),rpXY(e.mx.p),f(e.mn.v*F_.f),rpXY(e.mn.p)])});
+   Pp('Largest and smallest value of every result over the plate, '+(o.avg?'from the nodal averages':'from the unaveraged element-corner values')+', with the position (x, y) in '+LU()+'.');
+   const rows=[];Object.keys(FLD).forEach(k=>{const F_=FLD[k];if(F_.s=='B'?!okB:!okM)return;if(!fldOn(k))return;const e=rpExt(k,o.avg);rows.push([F_.lab,F_.u,f(e.mx.v*F_.f),rpXY(e.mx.p),f(e.mn.v*F_.f),rpXY(e.mn.p)])});
    Tb('Extremes of the results',[{h:'Result',w:50},{h:'Unit',w:14},{h:'Max',w:18,a:'r'},{h:'at (x, y)',w:24,a:'r'},{h:'Min',w:18,a:'r'},{h:'at (x, y)',w:24,a:'r'}],rows)}}
  if(S.meth){H('Analysis method and diagnostics');
   Pp('Method. Linear-elastic finite-element analysis of a plane plate of uniform thickness. Out-of-plane loading uses four-node Reissner–Mindlin plate elements with MITC4 assumed transverse shear (Bathe–Dvorkin), three degrees of freedom per node (w, βx, βy), free of shear locking so that thin plates converge to Kirchhoff theory. In-plane loading uses four-node plane-stress elements with Wilson–Taylor incompatible modes (QM6), two degrees of freedom per node (u, v). The two systems share the mesh and are solved independently with reverse Cuthill–McKee node ordering and a skyline Cholesky factorisation; a zero or negative pivot is reported as a mechanism. Stress resultants are evaluated at the 2 × 2 Gauss points, extrapolated to the element corners and, for averaged results, averaged at the nodes. Reactions are K·u − F at the restrained degrees of freedom.');
-  Pp('Assumptions. Small displacements (no membrane–bending coupling, no buckling), isotropic linear-elastic material, plane stress, shear correction factor 5/6. Supports restrain the degrees of freedom of the mesh nodes on them; elastic ground is a Winkler foundation lumped from the element integrals.');
+  Pp('Assumptions. Small displacements (no membrane–bending coupling, no buckling), isotropic linear-elastic material, plane stress, shear correction factor 5/6. Supports restrain the degrees of freedom of the mesh nodes on them; elastic ground is a Winkler foundation lumped from the element integrals.'+((M.rigs||[]).length?' Rigid zones tie their nodes to a reference point by exact multi-point constraints (slave degrees of freedom eliminated); a restrained rigid zone is linear and bilateral, so a bolt in a fixed hole also resists being pulled away from its bearing face.':'')+(M.loads.some(l=>l.kind=='bolt')?' Bolt bearing loads are radial pressures varying as cos θ over the loaded half of each hole, scaled so their resultant is the bolt force.':''));
   if(ok){const L=[],st=(S_,lab,nd)=>{if(!S_)return;L.push(lab+': '+S_.nf.toLocaleString('en-GB')+' free degrees of freedom of '+(nd*R.mesh.nodes.length).toLocaleString('en-GB')+(S_.ok?'':' – MECHANISM')+'.')};if(R.hasB)st(R.B,'Out-of-plane',3);if(R.hasM)st(R.Mm,'In-plane',2);
    L.push('Mesh: '+R.mesh.els.length+' elements, '+R.nShapes+' distinct element shape'+(R.nShapes==1?'':'s')+'; solved in '+Math.round(R.ms)+' ms.');if(R.warn.length)L.push('Warnings: '+R.warn.join(' '));if(R.info.length)L.push('Notes: '+R.info.join(' '));Pp(L.join(' '))}
   Pp('These results come from an exploratory teaching tool and must be independently checked before they are relied on for design. Check convergence by refining the mesh; peaks at re-entrant corners, point loads and point supports grow without limit as the mesh is refined.',{c:'#555',f:'I'})}
